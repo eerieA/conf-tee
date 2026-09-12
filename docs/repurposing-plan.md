@@ -147,7 +147,7 @@ not a security control.
 
 ## 3. Remaining work
 
-### Phase 1: pre-push fixes (done, awaiting first commit)
+### Phase 1: pre-push fixes (done)
 
 Blocking the first push to a remote. The push is the irreversible step: once
 content reaches a public remote, it stays reachable in forks and caches even
@@ -166,11 +166,12 @@ contains only sanitized content, with no history to scrub.
 - [x] **Fixed authorship metadata** and the package description (was "diff
       check", which reinforced the wrong framing).
 - [x] **Set git identity.**
-- [ ] Add a remote (`git remote add origin <url>`) and make the first commit.
+- [x] **Added a remote and pushed.** `origin` is a private GitHub repo; two
+      commits so far. Reviewed as rendered there before any public flip.
 - [ ] *Optional:* `.gitattributes` with `* text=auto eol=lf` to avoid CRLF churn.
-      Easier before the first commit than after.
-- [ ] *Optional:* push to a private remote first, review the rendered repo, then
-      flip to public.
+      Was easier before the first commit; still worth adding, now with a
+      `--renormalize` pass.
+- [ ] Flip the remote to public once Phase 2 lands.
 
 **Pre-flight checks passed** (re-run if the staged set changes):
 169 files staged; no ignored-category files; 0 identifier hits scanning *staged
@@ -194,6 +195,8 @@ matching, in five scattered places:
 | VLAN pool check | `utils/diff_helpers.py:370` | `if var == "Vlan_ID_user"` |
 | Arithmetic kind | `models/section_comparer.py:55` | membership in `IPV4_VARIABLES` / `INT_VARIABLES` |
 | Consistency scope | `utils/diff_helpers.py:22` | computed by *subtraction* from the regex dict |
+| IP pool membership | `utils/diff_helpers.py:360`, `:365` | membership in `IPV4_VARIABLES_USER` / `IPV4_VARIABLES_INFRA` |
+| Value binding by type | `models/line_analyzer.py:290` | membership in `IPV4_VARIABLES` |
 
 `ConstantsSingleton` + `DisjointSet` exist purely to *recover* at runtime which
 variables form a subnet family (`Vrfglue_prefix`, `Vrfglue_prefix_1st_IP`,
@@ -219,6 +222,32 @@ Schema sections (v1):
    DisjointSet inference, freeing users from the naming convention.
 5. `pools`: named IP/integer ranges, replacing hardcoded pool constants.
 
+**Which constants file the schema is built from.** There are three:
+`constants.py` (local development), `constants.api.py` (byte-identical to it,
+kept so integration testing could mutate it independently), and
+`constants.desired.py` (the client's intended production values). The schema is
+transcribed from `constants.py`, for two reasons: it is what
+`tests/fixtures/baseline.json` was generated against, so any other choice starts
+Phase 2 by breaking its own regression net; and `constants.desired.py` carries
+known regex errors, two of which are annotated inline in `constants.py` itself
+(the `int_#` pattern, and `net_type_6_Vlan_name` missing escapes). The other two
+files have no importer anywhere in the package, so they are deleted as part of
+this phase rather than reconciled.
+
+**Pools are in scope, and cannot simply be dropped.** `TEMP_UPLINK_PREFIXES`
+(`diff_helpers.py:31`) and `get_legit_ip_pools()` / `get_legit_vlan_pools()`
+(`helpers.py:161`, `:176`) all hold values belonging to the original
+organization. The uplink prefixes are already overridable: `calculate_diff()`
+takes an `infra_prefixes` argument and falls back to the constant only when the
+caller passes nothing, which is what the corpus does. The two pool helpers are
+not overridable at all, and return ranges (`10.45.0.0/16`, VLANs 1 to 4096) wide
+enough that the checks they feed rarely fire. Deleting them would therefore look
+behavior-neutral while actually removing a check. They become the `pools` schema
+section, and absent pools must mean "do not check", not "check against a
+built-in default". Note also that `INFRA_VLAN_POOL` / `USER_VLAN_POOL` are
+computed at import time (`diff_helpers.py:39`), so this is module-level state a
+threaded schema object has to displace.
+
 `links` (cross-variable equality conditioned on section) was cut from v1,
 because it existed for a single `LNK_RELATIONS` entry. Revisit later as a general
 `constraints` system (`a == b`, `a < b`, `a in subnet(b)`) if anyone needs it.
@@ -228,14 +257,30 @@ lost. The five sections above are the substance.
 
 **Steps:**
 
+Ordered so that transcription errors surface before any behavior can move. The
+first three steps add code without changing what runs, so a mistake in the
+56-regex transcription is caught by a direct comparison rather than debugged
+later through a shifted report.
+
 - [ ] `schema.py`: parse and validate YAML into internal structures, with clear
       errors for malformed schemas.
-- [ ] `schemas/cisco-campus.yaml`: current constants expressed in the new
-      format. (Renamed from the original org-specific name.)
+- [ ] `schemas/cisco-campus.yaml`: `constants.py` expressed in the new format.
+      (Renamed from the original org-specific name.)
+- [ ] Equivalence test: assert the loaded schema reproduces today's constants
+      exactly, before anything consumes it. Same regex dict, same `IPV4_*` and
+      `INT_VARIABLES` membership, same computed `VAR_CONS_FILE`, same clusters as
+      `ConstantsSingleton.get_clusters_dict()`. This is the gate for the steps
+      below.
 - [ ] Thread a schema object through `LineAnalyzer`, `SectionComparer`,
-      `diff_helpers` in place of module-level constant imports.
+      `diff_helpers` in place of module-level constant imports. Includes the
+      import-time pool computation at `diff_helpers.py:39`.
+- [ ] Move pools into the schema, with absent pools meaning "do not check".
+      Retire `TEMP_UPLINK_PREFIXES`, `get_legit_ip_pools()`,
+      `get_legit_vlan_pools()`.
 - [ ] Delete `models/constants_singleton.py` (`ConstantsSingleton`, `DisjointSet`,
       `determine_cluster`) and the scattered string-inference tests.
+- [ ] Delete `utils/constants.api.py` and `utils/constants.desired.py`, which
+      have no importer.
 - [ ] Verify all 129 tests still pass. Unchanged reports prove the migration was
       faithful.
 
@@ -283,6 +328,8 @@ Recorded so they are not silently re-litigated later.
 | Hash guard tokens rather than gitignore the test | A gitignored test never runs, so it stops being enforcement. Hashing addresses presentation without losing the guard. |
 | Strip the OpenAI path entirely | Experimental, optional, added an API-key requirement and 17 dependencies to a tool that works without it. |
 | Rename to `conf-tee` / `conftee` | The old name promised a diff tool, setting the wrong expectation for what this does. `conf-tee` keeps the networking origin story through shared muscle memory (`conf t`) while reading harmlessly to outsiders, and does not trap the tool in the networking niche. Renamed while the project had zero users, when lock-in was zero. |
+| Build the schema from `constants.py`, not `constants.desired.py` | It is what the regression baseline pins, and the client's intended values carry known regex errors. |
+| Make pools optional rather than deleting them | The hardcoded ranges are org-specific, but they feed real checks; a bare delete would remove a check while looking behavior-neutral. |
 | Keep the guard salt unchanged after the rename | It is an opaque constant; changing it would invalidate every digest. See the note in `tests/test_regression.py`. |
 
 ---

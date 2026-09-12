@@ -116,6 +116,8 @@ diffable and can be updated alongside the code.
 > | VLAN pool check | `diff_helpers.py:370` | `if var == "Vlan_ID_user"` |
 > | arithmetic kind | `section_comparer.py:55` | membership in `IPV4_VARIABLES` / `INT_VARIABLES` |
 > | consistency scope | `diff_helpers.py:22` | computed by *subtraction* from the regex dict |
+> | IP pool membership | `diff_helpers.py:360` | membership in `IPV4_VARIABLES_USER` / `_INFRA` |
+> | value binding by type | `line_analyzer.py:290` | membership in `IPV4_VARIABLES` |
 >
 > Declaring families, roles and scopes in a schema file replaces this inference.
 > See [repurposing-plan.md](./repurposing-plan.md) §2.
