@@ -1,0 +1,73 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub1 building router hsrp ~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 351
+  name STMC01-UNUSED
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub1 building router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 351
+  name STMC01-UNUSED
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ building distribution switch ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 351
+  name STMC01-UNUSED
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add 351
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add 351
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ building access switch #1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 351
+  name STMC01-UNUSED
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add 351
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ building access switch #2 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 351
+  name STMC01-UNUSED
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add 351
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+

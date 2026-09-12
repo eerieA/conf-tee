@@ -1,0 +1,117 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ test_asa_243 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### VRF START ########### 
+changeto context system
+config terminal
+!
+!
+interface standby_firepower_1_interface_1.22
+vlan 22
+!
+context TEST_CONTEXT_1
+  allocate-interface standby_firepower_1_interface_1.22 visible
+!
+changeto context TEST_CONTEXT_1
+config terminal
+!
+!
+interface standby_firepower_1_interface_1.22
+  nameif TEST-TEST_VRF_1
+  security-level 50
+  ip address 10.45.20.137 255.255.255.248 standby 10.45.20.138
+!
+object-group network VRF_TEST-TEST_VRF_1_Subnets
+  network-object 10.45.20.136 255.255.255.248
+!
+object-group network All_VRF_Subnets
+  group-object VRF_TEST-TEST_VRF_1_Subnets
+!
+access-list TEST-TEST_VRF_1_access_in extended permit ip 10.45.20.136 255.255.255.248 any
+!
+access-group TEST-TEST_VRF_1_access_in in interface TEST-TEST_VRF_1
+!
+mtu TEST-TEST_VRF_1 8500
+!
+!
+ip verify reverse-path interface TEST-TEST_VRF_1
+!
+monitor-interface TEST-TEST_VRF_1
+!
+icmp permit any TEST-TEST_VRF_1
+!
+! ########### VRF END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ test_hsrp_s_router_257 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### VRF START ########### 
+!
+ip vrf TEST-TEST_VRF_1
+  rd 64000:2
+  route-target export 64000:2
+  route-target import 64000:2
+!
+vlan 22
+  name TEST_O-VRFGLUE=TEST-TEST_VRF_1
+!
+firewall vlan-group 4 22
+!
+interface vlan22
+  description TEST_O-VRFGLUE=TEST-TEST_VRF_1
+  mtu 8500
+  ip vrf forwarding TEST-TEST_VRF_1
+  ip address 10.45.20.140 255.255.255.248
+  standby ip 10.45.20.137
+  standby preempt
+  standby priority 100
+  standby authentication md5 key-string 0 ewhr324jflewfjosdfjofds
+  no shutdown
+!
+router bgp 64000
+  address-family IPv4 vrf TEST-TEST_VRF_1
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+ip route 10.45.20.136 255.255.255.248 10.45.20.129 name TEST_O-VRFGLUE=TEST-TEST_VRF_1
+!
+ip route vrf TEST-TEST_VRF_1 0.0.0.0 0.0.0.0 10.45.20.137 name TEST_CONTEXT_1:DEFAULT-ROUTE=TEST-TEST_VRF_1
+!
+! ########### VRF END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ test_hsrp_a_router_186 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### VRF START ########### 
+!
+ip vrf TEST-TEST_VRF_1
+  rd 64000:2
+  route-target export 64000:2
+  route-target import 64000:2
+!
+vlan 22
+  name TEST_O-VRFGLUE=TEST-TEST_VRF_1
+!
+firewall vlan-group 4 22
+!
+interface vlan22
+  description TEST_O-VRFGLUE=TEST-TEST_VRF_1
+  mtu 8500
+  ip vrf forwarding TEST-TEST_VRF_1
+  ip address 10.45.20.141 255.255.255.248
+  standby ip 10.45.20.137
+  standby preempt
+  standby priority 105
+  standby authentication md5 key-string 0 ewhr324jflewfjosdfjofds
+  no shutdown
+!
+router bgp 64000
+  address-family IPv4 vrf TEST-TEST_VRF_1
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+ip route 10.45.20.136 255.255.255.248 10.45.20.129 name TEST_O-VRFGLUE=TEST-TEST_VRF_1
+!
+ip route vrf TEST-TEST_VRF_1 0.0.0.0 0.0.0.0 10.45.20.137 name TEST_CONTEXT_1:DEFAULT-ROUTE=TEST-TEST_VRF_1
+!
+! ########### VRF END ############# 

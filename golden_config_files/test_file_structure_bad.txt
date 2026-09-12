@@ -1,0 +1,49 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctx FW Context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### CONTEXT START ########### 
+!
+ip address {FWGLUE_Prefix_1st_IP} {FWGLUE_Prefix_netmask} standby {{FWGLUE_Prefix_1st_IP}+1}
+! ########### CONTEXT END ############# 
+
+! ########### VRF START ########### 
+!
+pass {Vlan_ID_user} {RD_ID}
+pass {Vlan_ID_user}
+pass2 {Vlan_ID_user}
+Will be a missing line
+ip address {{Vrfglue_prefix_last_IP}-2} {Vrfglue_prefix_netmask}
+! ########### VRF END ############# 
+
+! ########### USER PREFIX START ########### 
+!
+pass {FW_context_name}
+! ########### USER PREFIX END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ vss-a25-l25 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+pass {RD_ID}
+pass2 {RD_ID}
+pass {Vlan_ID_user}
+pass2 {Vlan_ID_user}
+command error test {Vlan_ID_user} word aa
+pass {User_prefix} {Vlan_ID_user} {RD_ID}
+subnet test1 {Vrfglue_prefix} {Vrfglue_prefix_netmask}
+pass3 {{Vrfglue_prefix}+1}
+subnet test2 {Vrfglue_prefix_1st_IP}
+subnet test3 {Vrfglue_prefix_last_IP}
+ip route {Vrfglue_prefix} {Vrfglue_prefix_netmask} {GW-FW_outside_IP} name someVRFglueName
+! ########### VRF END ############# 
+
+! ########### USER PREFIX START ########### 
+!
+pass {Vlan_ID_user}
+ip route {User_prefix} {User_prefix_netmask} {GW-FW_outside_IP} name someVlanName
+! ########### USER PREFIX END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ vss-a26-l26 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+pass {RD_ID}
+! ########### VRF END ############# 

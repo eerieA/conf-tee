@@ -1,0 +1,110 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw1-ctxm FW context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VPN PREFIX START ########### 
+!
+changeto context {FW_context_name}
+config terminal
+!
+!
+object-group network VRF_{VRF_name}_Subnets
+  network-object {Vpnglue_prefix} 255.255.255.248
+  network-object {IP_local_pool_prefix} {IP_local_pool_netmask}
+!
+access-list {VRF_name}_access_in extended permit ip {Vpnglue_prefix} 255.255.255.248 any
+access-list {VRF_name}_access_in extended permit ip {IP_local_pool_prefix} {IP_local_pool_netmask} any
+!
+route {VRF_name} {Vpnglue_prefix} 255.255.255.248 {Vrfglue_prefix_last_IP} 1
+route {VRF_name} {IP_local_pool_prefix} {IP_local_pool_netmask} {Vrfglue_prefix_last_IP} 1
+!
+! ########### VPN PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub1 FW context and VPN gateway router hsrp ~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VGLUE PREFIX START ########### 
+!
+vlan {Vlan_ID_vpnglue}
+  name VPNX01-{IP_local_pool_name}-VGLUE={VRF_name}
+!
+interface {int_name_A}{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_vpnglue}
+!
+interface Port-channel1
+ switchport trunk allowed vlan add {Vlan_ID_vpnglue}
+!
+interface vlan{Vlan_ID_vpnglue}
+  description VPNX01-{IP_local_pool_name}-VGLUE={VRF_name}
+  mtu 9216
+  ip vrf forwarding {VRF_name}
+  ip address {{Vpnglue_prefix_last_IP}-1} 255.255.255.248
+  standby ip {Vpnglue_prefix_last_IP}
+  standby preempt
+  standby priority 105
+  standby authentication md5 key-string 0 {key_word}
+  no shutdown
+!
+ip route vrf {VRF_name} {IP_local_pool_prefix} {IP_local_pool_netmask} {Vpnglue_prefix_1st_IP} name {FW_context_name}:VPNX01-{IP_local_pool_name}={VRF_name}
+!
+ip route {Vpnglue_prefix} 255.255.255.248 {FWGLUE_Prefix_1st_IP} name {FW_context_name}:VPNX01-{IP_local_pool_name}-VGLUE={VRF_name}
+ip route {IP_local_pool_prefix} {IP_local_pool_netmask} {FWGLUE_Prefix_1st_IP} name {FW_context_name}:VPNX01-{IP_local_pool_name}={VRF_name}
+!
+! ########### VPN PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub1 FW context and VPN gateway router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VPN PREFIX START ########### 
+!
+vlan {Vlan_ID_vpnglue}
+  name VPNX01-{IP_local_pool_name}-VGLUE={VRF_name}
+!
+interface {int_name_L}{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_vpnglue}
+!
+interface Port-channel1
+ switchport trunk allowed vlan add {Vlan_ID_vpnglue}
+!
+interface vlan{Vlan_ID_vpnglue}
+  description VPNX01-{IP_local_pool_name}-VGLUE={VRF_name}
+  mtu 9216
+  ip vrf forwarding {VRF_name}
+  ip address {{Vpnglue_prefix_last_IP}-2} 255.255.255.248
+  standby ip {Vpnglue_prefix_last_IP}
+  standby preempt
+  standby priority 100
+  standby authentication md5 key-string 0 {key_word}
+  no shutdown
+!
+ip route vrf {VRF_name} {IP_local_pool_prefix} {IP_local_pool_netmask} {Vpnglue_prefix_1st_IP} name {FW_context_name}:VPNX01-{IP_local_pool_name}={VRF_name}
+!
+ip route {Vpnglue_prefix} 255.255.255.248 {FWGLUE_Prefix_1st_IP} name {FW_context_name}:VPNX01-{IP_local_pool_name}-VGLUE={VRF_name}
+ip route {IP_local_pool_prefix} {IP_local_pool_netmask} {FWGLUE_Prefix_1st_IP} name {FW_context_name}:VPNX01-{IP_local_pool_name}={VRF_name}
+!
+! ########### VPN PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ myvpn vpn gateway ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VPN PREFIX START ########### 
+config terminal
+!
+interface Ethernet1/8.{Vlan_ID_vpnglue}
+  nameif {IP_local_pool_name}
+  security-level 50
+  ip address {Vpnglue_prefix_1st_IP} 255.255.255.248 standby {{Vpnglue_prefix_1st_IP}+1}
+!
+mtu {IP_local_pool_name} 1500
+!
+ip local pool {IP_local_pool_name} {IP_local_pool_first_IP}-{IP_local_pool_last_IP} mask {IP_local_pool_netmask}
+route {IP_local_pool_name} 0.0.0.0 0.0.0.0 {Vpnglue_prefix_last_IP} {IBVPN_metric}
+!
+group_policy {Vlan_ID_vpnglue} internal
+group_policy {Vlan_ID_vpnglue} attributes
+  split-tunnel-policy tunnelall
+  vlan {Vlan_ID_vpnglue}
+  address-pools value {IP_local_pool_name}
+exit
+!
+! ########### VPN PREFIX END ############# 
+
+

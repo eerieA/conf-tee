@@ -1,0 +1,3 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctx FW Context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### VRF START ########### 
+ip route {User_prefix} {User_prefix_netmask} {GW-FW_outside_IP} name {FW_context_name}:{Vlan_name}

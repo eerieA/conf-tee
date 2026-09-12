@@ -1,0 +1,18 @@
+{
+  "fw25-ctx": {
+    "VRF": [
+      [
+        "value-mistach, value-wrong-link",
+        {
+          "expected": "ip route 10.45.56.0 255.255.255.224 10.45.54.25 name {FW_context_name}: BLDE01-d=NOVA-WLAN31",
+          "actual": "ip route 10.45.56.0 255.255.255.224 10.45.54.17 name :BLDE01-d=NOVA-WLAN31",
+          "explanations": [
+            "Missing a value for {FW_context_name}; unfortunately there is no known valid value for it",
+            "10.45.54.17 for {GW-FW_outside_IP} is not inherited from 10.45.54.25 (wrong-gateway)"
+          ],
+          "line": 3
+        }
+      ]
+    ]
+  }
+}

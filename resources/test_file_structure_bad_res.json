@@ -1,0 +1,218 @@
+{
+  "fw25-ctx": {
+    "CONTEXT": [
+      [
+        "value-wrong-src",
+        {
+          "expected": "ip address <10.45.54.24 - 10.45.54.31> 255.255.255.248 standby <10.45.54.24 - 10.45.54.31>",
+          "actual": "ip address 10.45.92.121 255.255.255.248 standby 10.45.92.122",
+          "explanations": [
+            "10.45.92.121 for {FWGLUE_Prefix_1st_IP} is not in expected range (fwglue_prefix-subnet): 10.45.54.24 - 10.45.54.31",
+            "10.45.92.121 (10.45.92.122 for {{FWGLUE_Prefix_1st_IP}+1}) for {FWGLUE_Prefix_1st_IP} is not in expected range (fwglue_prefix-subnet): 10.45.54.24 - 10.45.54.31"
+          ],
+          "line": 4
+        }
+      ]
+    ],
+    "EXTRA": [
+      "extra-section"
+    ],
+    "VRF": [
+      [
+        "value-mistach",
+        {
+          "expected": "pass 123 233",
+          "actual": "pass 999tt 233",
+          "explanations": [
+            "999tt for {Vlan_ID_user} mismatches the format; luckily we know 123 for it from other places"
+          ],
+          "line": 14
+        }
+      ],
+      [
+        "value-incons",
+        {
+          "expected": "pass2 123",
+          "actual": "pass2 456",
+          "explanations": [
+            "456 for {Vlan_ID_user} is inconsistent with 123 (value-incons), at least one of them is wrong"
+          ],
+          "line": 16
+        }
+      ],
+      [
+        "command-mistach",
+        {
+          "expected": "Will be a missing line",
+          "actual": "an extra line which is not a command, but the structure compare method should not care about this",
+          "explanations": [
+            "The command part differs from that in the golden line at 5 places"
+          ],
+          "line": 17
+        }
+      ],
+      [
+        "value-wrong-src, value-incons",
+        {
+          "expected": "ip address <10.45.54.208 - 10.45.54.215> 255.255.255.248",
+          "actual": "ip address 10.45.33.44 255.255.255.248",
+          "explanations": [
+            "10.45.33.46 (10.45.33.44 for {{Vrfglue_prefix_last_IP}-2}) for {Vrfglue_prefix_last_IP} is not in expected range (vrfglue_prefix-subnet): 10.45.54.208 - 10.45.54.215",
+            "10.45.33.44 for {{Vrfglue_prefix_last_IP}-2} is inconsistent with 10.45.54.212 (value-incons), at least one of them is wrong"
+          ],
+          "line": 18
+        }
+      ]
+    ],
+    "USER PREFIX": [
+      "missing-section"
+    ]
+  },
+  "bl31asa": {
+    "extra-device": "this"
+  },
+  "vss-a25-l25": {
+    "VRF": [
+      [
+        "value-incons",
+        {
+          "expected": "pass2 233",
+          "actual": "pass2 133",
+          "explanations": [
+            "133 for {RD_ID} is inconsistent with 233 (value-incons), at least one of them is wrong"
+          ],
+          "line": 33
+        }
+      ],
+      [
+        "extra-line",
+        {
+          "expected": "",
+          "actual": "ab",
+          "line": 34
+        }
+      ],
+      [
+        "command-mistach",
+        {
+          "expected": "command error test 123 word aa",
+          "actual": "command error-err tet 123 xcvb aa",
+          "explanations": [
+            "The command part differs from that in the golden line at 3 places"
+          ],
+          "line": 37
+        }
+      ],
+      [
+        "value-mistach, value-wrong-src, value-incons, command-mistach",
+        {
+          "expected": "pass <10.45.0.0 - 10.45.255.255> 123 233",
+          "actual": "pass 173.14.143.10 255",
+          "explanations": [
+            "Missing a value for {RD_ID}; luckily we know 233 for it from other places",
+            "173.14.143.10 for {User_prefix} is not in expected range (user-ipv4-pool): 10.45.0.0 - 10.45.255.255",
+            "255 for {Vlan_ID_user} is inconsistent with 123 (value-incons), at least one of them is wrong",
+            "The command part differs from that in the golden line at 1 places"
+          ],
+          "line": 38
+        }
+      ],
+      [
+        "value-wrong-src, value-incons",
+        {
+          "expected": "subnet test1 <10.45.54.208 - 10.45.54.215> 255.255.255.248",
+          "actual": "subnet test1 10.45.33.45 255.255.255.248",
+          "explanations": [
+            "10.45.33.45 for {Vrfglue_prefix} is not in expected range (vrfglue_prefix-subnet): 10.45.54.208 - 10.45.54.215",
+            "10.45.33.45 for {Vrfglue_prefix} is inconsistent with 10.45.54.208 (value-incons), at least one of them is wrong"
+          ],
+          "line": 39
+        }
+      ],
+      [
+        "value-wrong-src, value-incons",
+        {
+          "expected": "pass3 <10.45.54.208 - 10.45.54.215>",
+          "actual": "pass3 10.45.33.26",
+          "explanations": [
+            "10.45.33.25 (10.45.33.26 for {{Vrfglue_prefix}+1}) for {Vrfglue_prefix} is not in expected range (vrfglue_prefix-subnet): 10.45.54.208 - 10.45.54.215",
+            "10.45.33.26 for {{Vrfglue_prefix}+1} is inconsistent with 10.45.54.209 (value-incons), at least one of them is wrong"
+          ],
+          "line": 40
+        }
+      ],
+      [
+        "value-wrong-src",
+        {
+          "expected": "subnet test2 <10.45.54.208 - 10.45.54.215>",
+          "actual": "subnet test2 10.45.33.41",
+          "explanations": [
+            "10.45.33.41 for {Vrfglue_prefix_1st_IP} is not in expected range (vrfglue_prefix-subnet): 10.45.54.208 - 10.45.54.215"
+          ],
+          "line": 41
+        }
+      ],
+      [
+        "value-wrong-src, value-incons",
+        {
+          "expected": "subnet test3 <10.45.54.208 - 10.45.54.215>",
+          "actual": "subnet test3 10.45.33.47",
+          "explanations": [
+            "10.45.33.47 for {Vrfglue_prefix_last_IP} is not in expected range (vrfglue_prefix-subnet): 10.45.54.208 - 10.45.54.215",
+            "10.45.33.47 for {Vrfglue_prefix_last_IP} is inconsistent with 10.45.54.214 (value-incons), at least one of them is wrong"
+          ],
+          "line": 42
+        }
+      ],
+      [
+        "value-wrong-src, value-incons, value-wrong-link",
+        {
+          "expected": "ip route <10.45.54.208 - 10.45.54.215> 255.255.255.248 10.45.54.25 name someVRFglueName",
+          "actual": "ip route 10.45.33.45 255.255.255.248 10.45.102.121 name someVRFglueName",
+          "explanations": [
+            "10.45.33.45 for {Vrfglue_prefix} is not in expected range (vrfglue_prefix-subnet): 10.45.54.208 - 10.45.54.215",
+            "10.45.33.45 for {Vrfglue_prefix} is inconsistent with 10.45.54.208 (value-incons), at least one of them is wrong",
+            "10.45.102.121 for {GW-FW_outside_IP} is not inherited from 10.45.54.25 (wrong-gateway)"
+          ],
+          "line": 43
+        }
+      ],
+      [
+        "extra-line",
+        {
+          "expected": "",
+          "actual": "3312",
+          "line": 45
+        }
+      ]
+    ],
+    "USER PREFIX": [
+      [
+        "value-incons",
+        {
+          "expected": "pass 123",
+          "actual": "pass 999",
+          "explanations": [
+            "999 for {Vlan_ID_user} is inconsistent with 123 (value-incons), at least one of them is wrong"
+          ],
+          "line": 49
+        }
+      ],
+      [
+        "value-wrong-src, value-wrong-link",
+        {
+          "expected": "ip route <10.45.0.0 - 10.45.255.255> 255.255.255.248 10.45.54.25 name someVlanName",
+          "actual": "ip route 173.14.143.10 255.255.255.248 10.45.33.46 name someVlanName",
+          "explanations": [
+            "173.14.143.10 for {User_prefix} is not in expected range (user-ipv4-pool): 10.45.0.0 - 10.45.255.255",
+            "10.45.33.46 for {GW-FW_outside_IP} is not inherited from 10.45.54.25 (wrong-gateway)"
+          ],
+          "line": 50
+        }
+      ]
+    ]
+  },
+  "vss-a26-l26": {
+    "missing-device": "this"
+  }
+}

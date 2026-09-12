@@ -1,0 +1,59 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test Router HSRP Standby ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### MULTICAST START ########### 
+!
+ip multicast-routing vrf TEST-TEST_VRF_1
+!
+ip vrf TEST-TEST_VRF_1
+  mdt default 239.100.2.139
+  mdt data 10.45.2.0 255.255.255.192 threshold 10
+  mdt log-reuse
+!
+interface Loopback20000
+  description RP Loopback for VRF TEST-TEST_VRF_1
+  ip vrf forwarding TEST-TEST_VRF_1
+  ip address 10.239.0.0 255.255.255.255
+  ip pim sparse-dense-mode
+!
+ip pim vrf TEST-TEST_VRF_1 rp-address 10.239.0.0
+!
+interface Loopback20002
+  description MSDP Loopback for VRF TEST-TEST_VRF_1
+  ip vrf forwarding TEST-TEST_VRF_1
+  ip address 10.239.0.2 255.255.255.255
+  ip pim sparse-dense-mode
+!
+ip msdp vrf TEST-TEST_VRF_1 peer 10.239.0.1 connect-source Loopback20002
+ip msdp vrf TEST-TEST_VRF_1 cache-sa-state
+ip msdp vrf TEST-TEST_VRF_1 originator-id Loopback20002
+!
+! ########### MULTICAST END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test Router HSRP Active ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### MULTICAST START ########### 
+!
+ip multicast-routing vrf TEST-TEST_VRF_1
+!
+ip vrf TEST-TEST_VRF_1
+  mdt default 239.100.2.139
+  mdt data 10.45.2.0 255.255.255.192 threshold 10
+  mdt log-reuse
+!
+interface Loopback20000
+  description RP Loopback for VRF TEST-TEST_VRF_1
+  ip vrf forwarding TEST-TEST_VRF_1
+  ip address 10.239.0.0 255.255.255.255
+  ip pim sparse-dense-mode
+!
+ip pim vrf TEST-TEST_VRF_1 rp-address 10.239.0.0
+!
+interface Loopback20001
+  description MSDP Loopback for VRF TEST-TEST_VRF_1
+  ip vrf forwarding TEST-TEST_VRF_1
+  ip address 10.239.0.1 255.255.255.255
+  ip pim sparse-dense-mode
+!
+ip msdp vrf TEST-TEST_VRF_1 peer 10.239.0.2 connect-source Loopback20001
+ip msdp vrf TEST-TEST_VRF_1 cache-sa-state
+ip msdp vrf TEST-TEST_VRF_1 originator-id Loopback20001
+!
+! ########### MULTICAST END ############# 

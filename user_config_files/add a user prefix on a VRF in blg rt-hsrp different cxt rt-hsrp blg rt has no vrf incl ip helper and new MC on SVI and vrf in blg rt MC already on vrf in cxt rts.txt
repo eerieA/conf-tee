@@ -1,0 +1,198 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw1-ctxm FW context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+changeto context NOVA33
+config terminal
+!
+!
+object-group network VRF_NOVA-WLAN31_Subnets
+  network-object 10.45.56.128 255.255.255.192
+!
+access-list NOVA-WLAN31_access_in extended permit ip 10.45.56.128 255.255.255.192 any
+!
+route NOVA-WLAN31 10.45.56.128 255.255.255.192 10.45.55.246 1
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub28 building router hsrp ~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf NOVA-WLAN31
+  rd 64000:3425
+  route-target export 64000:3425
+  route-target import 64000:3425
+!
+router bgp 64000
+  address-family ipv4 vrf NOVA-WLAN31
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+! ########### VRF END ############# 
+
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name BLDE01-LINK32=NOVA-WLAN31
+!
+interface GigabitEthernet2/28
+ switchport trunk allowed vlan add 3737
+!
+interface vlan3737
+  description BLDE01-LINK32=NOVA-WLAN31
+  mtu 9216
+  ip vrf forwarding NOVA-WLAN31
+  ip address 10.45.56.189 255.255.255.192
+  ip helper-address 142.100.1.1
+  standby ip 10.45.56.190
+  standby preempt
+  standby priority 105
+  standby authentication md5 key-string 0 ewhr324jflewfjosdfjofds
+  no shutdown
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+! ########### MULTICAST START ########### 
+!
+ip multicast-routing vrf NOVA-WLAN31
+!
+ip vrf NOVA-WLAN31
+  mdt default 239.100.2.11
+  mdt data 239.2.2.128 255.255.255.192 threshold 10
+  mdt log-reuse
+!
+interface Vlan3737
+  ip pim sparse-mode
+!
+!copy running start
+!
+! ########### MULTICAST END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub28 building router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf NOVA-WLAN31
+  rd 64000:3425
+  route-target export 64000:3425
+  route-target import 64000:3425
+!
+router bgp 64000
+  address-family ipv4 vrf NOVA-WLAN31
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+! ########### VRF END ############# 
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name BLDE01-LINK32=NOVA-WLAN31
+!
+interface GigabitEthernet2/28
+ switchport trunk allowed vlan add 3737
+!
+interface vlan3737
+  description BLDE01-LINK32=NOVA-WLAN31
+  mtu 9216
+  ip vrf forwarding NOVA-WLAN31
+  ip address 10.45.56.188 255.255.255.192
+  ip helper-address 142.100.1.1
+  standby ip 10.45.56.190
+  standby preempt
+  standby priority 100
+  standby authentication md5 key-string 0 ewhr324jflewfjosdfjofds
+  no shutdown
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+! ########### MULTICAST START ########### 
+!
+ip multicast-routing vrf NOVA-WLAN31
+!
+ip vrf NOVA-WLAN31
+  mdt default 239.100.2.11
+  mdt data 239.2.2.128 255.255.255.192 threshold 10
+  mdt log-reuse
+!
+interface Vlan3737
+  ip pim sparse-mode
+!
+!copy running start
+!
+! ########### MULTICAST END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub1 FW context router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+ip route 10.45.56.128 255.255.255.192 10.45.54.17 name NOVA33:BLDE01-LINK32=NOVA-WLAN31
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub1 FW context router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+ip route 10.45.56.128 255.255.255.192 10.45.54.17 name NOVA33:BLDE01-LINK32=NOVA-WLAN31
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-04 building distribution switch ~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name BLDE01-LINK32=NOVA-WLAN31
+!
+interface GigabitEthernet1/1/4
+ switchport trunk allowed vlan add 3737
+!
+interface GigabitEthernet2/1/4
+ switchport trunk allowed vlan add 3737
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 3737
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-24 building access switch #1 ~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name BLDE01-LINK32=NOVA-WLAN31
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 3737
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+

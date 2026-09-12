@@ -1,0 +1,60 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~ vss-a25-l25 building router vss ~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 2280
+  name UNUSED01
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ building distribution switch ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 2280
+  name UNUSED01
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add 2280
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add 2280
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ building access switch #1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 2280
+  name UNUSED01
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add 2280
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ building access switch #2 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 2280
+  name UNUSED01
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add 2280
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+

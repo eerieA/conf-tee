@@ -1,0 +1,12 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctx FW Context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### VRF START aa ########### 
+!
+ip vr aaa
+  rd 64000:34435
+     route-target   expot 64000:3435
+!wwwwwwwwwwwwwwwww
+extra
+vlan 645
+  name ABCD12-VRFGLUE=abcd-xy12
+
+vlan 789

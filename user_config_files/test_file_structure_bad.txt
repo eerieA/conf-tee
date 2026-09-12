@@ -1,0 +1,51 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctx FW Context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### CONTEXT START ########### 
+!
+ip address 10.45.92.121 255.255.255.248 standby 10.45.92.122
+! ########### CONTEXT END ############# 
+
+! ########### EXTRA START ########### 
+!
+pass
+! ########### EXTRA END ############# 
+
+! ########### VRF START ########### 
+!
+pass 999tt 233
+pass 123
+pass2 456
+an extra line which is not a command, but the structure compare method should not care about this
+ip address 10.45.33.44 255.255.255.248
+! ########### VRF END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bl31asa ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+pass 233
+! ########### VRF END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ vss-a25-l25 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+pass 233
+pass2 133
+ab
+pass 123
+pass2 123
+command error-err tet 123 xcvb aa
+pass 173.14.143.10 255
+subnet test1 10.45.33.45 255.255.255.248
+pass3 10.45.33.26
+subnet test2 10.45.33.41
+subnet test3 10.45.33.47
+ip route 10.45.33.45 255.255.255.248 10.45.102.121 name someVRFglueName
+! ########### VRF END ############# 
+3312
+
+! ########### USER PREFIX START ########### 
+!
+pass 999
+ip route 173.14.143.10 255.255.255.248 10.45.33.46 name someVlanName
+! ########### USER PREFIX END ############# 

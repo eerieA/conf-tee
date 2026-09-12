@@ -1,0 +1,59 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test Router HSRP Standby ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### MULTICAST START ########### 
+!
+ip multicast-routing vrf {VRF_name}
+!
+ip vrf {VRF_name}
+  mdt default {mdt_default_address}
+  mdt data {mdt_data_address} {User_prefix_netmask} threshold 10
+  mdt log-reuse
+!
+interface Loopback20000
+  description RP Loopback for VRF {VRF_name}
+  ip vrf forwarding {VRF_name}
+  ip address 10.239.0.0 255.255.255.255
+  ip pim sparse-dense-mode
+!
+ip pim vrf {VRF_name} rp-address 10.239.0.0
+!
+interface Loopback20002
+  description MSDP Loopback for VRF {VRF_name}
+  ip vrf forwarding {VRF_name}
+  ip address 10.239.0.2 255.255.255.255
+  ip pim sparse-dense-mode
+!
+ip msdp vrf {VRF_name} peer 10.239.0.1 connect-source Loopback20002
+ip msdp vrf {VRF_name} cache-sa-state
+ip msdp vrf {VRF_name} originator-id Loopback20002
+!
+! ########### MULTICAST END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test Router HSRP Active ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### MULTICAST START ########### 
+!
+ip multicast-routing vrf {VRF_name}
+!
+ip vrf {VRF_name}
+  mdt default {mdt_default_address}
+  mdt data {mdt_data_address} {User_prefix_netmask} threshold 10
+  mdt log-reuse
+!
+interface Loopback20000
+  description RP Loopback for VRF {VRF_name}
+  ip vrf forwarding {VRF_name}
+  ip address 10.239.0.0 255.255.255.255
+  ip pim sparse-dense-mode
+!
+ip pim vrf {VRF_name} rp-address 10.239.0.0
+!
+interface Loopback20001
+  description MSDP Loopback for VRF {VRF_name}
+  ip vrf forwarding {VRF_name}
+  ip address 10.239.0.1 255.255.255.255
+  ip pim sparse-dense-mode
+!
+ip msdp vrf {VRF_name} peer 10.239.0.2 connect-source Loopback20001
+ip msdp vrf {VRF_name} cache-sa-state
+ip msdp vrf {VRF_name} originator-id Loopback20001
+!
+! ########### MULTICAST END ############# 

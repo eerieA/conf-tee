@@ -1,0 +1,144 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw1-ctxm FW context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VPN PREFIX START ########### 
+!
+changeto context NOVA22
+config terminal
+!
+!
+object-group network VRF_NOVA-TEST35_Subnets
+  network-object 10.45.54.248 255.255.255.248
+  network-object 10.45.55.112 255.255.255.240
+!
+access-list NOVA-TEST35_access_in extended permit ip 10.45.54.248 255.255.255.248 any
+access-list NOVA-TEST35_access_in extended permit ip 10.45.55.112 255.255.255.240 any
+!
+route NOVA-TEST35 10.45.54.248 255.255.255.248 10.45.54.214 1
+route NOVA-TEST35 10.45.55.112 255.255.255.240 10.45.54.214 1
+!
+! ########### VPN PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub1 FW context and VPN gateway router hsrp ~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf NOVA-TEST35
+  rd 64000:321
+  route-target export 64000:321
+  route-target import 64000:321
+!
+router bgp 64000
+  address-family ipv4 vrf NOVA-TEST35
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+! ########### VRF END ############# 
+
+! ########### VGLUE PREFIX START ########### 
+!
+vlan 123
+  name VPNX01-IBPOOL26-VGLUE=NOVA-TEST35
+!
+interface TenGigabitEthernet1/26
+ switchport trunk allowed vlan add 123
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 123
+!
+interface vlan123
+  description VPNX01-IBPOOL26-VGLUE=NOVA-TEST35
+  mtu 9216
+  ip vrf forwarding NOVA-TEST35
+  ip address 10.45.54.253 255.255.255.248
+  standby ip 10.45.54.254
+  standby preempt
+  standby priority 105
+  standby authentication md5 key-string 0 ewhr324jflewfjosdfjof
+  no shutdown
+!
+ip route vrf NOVA-TEST35 10.45.55.112 255.255.255.240 10.45.54.249 name NOVA22:VPNX01-IBPOOL26=NOVA-TEST35
+!
+ip route 10.45.54.248 255.255.255.248 10.45.54.25 name NOVA22:VPNX01-IBPOOL26-VGLUE=NOVA-TEST35
+ip route 10.45.55.112 255.255.255.240 10.45.54.25 name NOVA22:VPNX01-IBPOOL26=NOVA-TEST35
+!
+! ########### VPN PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub1 FW context and VPN gateway router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf NOVA-TEST35
+  rd 64000:321
+  route-target export 64000:321
+  route-target import 64000:321
+!
+router bgp 64000
+  address-family ipv4 vrf NOVA-TEST35
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+! ########### VRF END ############# 
+
+! ########### VPN PREFIX START ########### 
+!
+vlan 123
+  name VPNX01-IBPOOL26-VGLUE=NOVA-TEST35
+!
+interface TenGigabitEthernet1/26
+ switchport trunk allowed vlan add 123
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 123
+!
+interface vlan123
+  description VPNX01-IBPOOL26-VGLUE=NOVA-TEST35
+  mtu 9216
+  ip vrf forwarding NOVA-TEST35
+  ip address 10.45.54.252 255.255.255.248
+  standby ip 10.45.54.254
+  standby preempt
+  standby priority 100
+  standby authentication md5 key-string 0 ewhr324jflewfjosdfjof
+  no shutdown
+!
+ip route vrf NOVA-TEST35 10.45.55.112 255.255.255.240 10.45.54.249 name NOVA22:VPNX01-IBPOOL26=NOVA-TEST35
+!
+ip route 10.45.54.248 255.255.255.248 10.45.54.25 name NOVA22:VPNX01-IBPOOL26-VGLUE=NOVA-TEST35
+ip route 10.45.55.112 255.255.255.240 10.45.54.25 name NOVA22:VPNX01-IBPOOL26=NOVA-TEST35
+!
+! ########### VPN PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ myvpn vpn gateway ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VPN PREFIX START ########### 
+config terminal
+!
+interface Ethernet1/8.123
+  nameif IBPOOL26
+  security-level 50
+  ip address 10.45.54.249 255.255.255.248 standby 10.45.54.250
+!
+mtu IBPOOL26 1500
+!
+ip local pool IBPOOL26 10.45.55.113-10.45.55.125 mask 255.255.255.240
+route IBPOOL26 0.0.0.0 0.0.0.0 10.45.54.254 26
+!
+group_policy 123 internal
+group_policy 123 attributes
+  split-tunnel-policy tunnelall
+  vlan 123
+  address-pools value IBPOOL26
+exit
+!
+! ########### VPN PREFIX END ############# 
+
+

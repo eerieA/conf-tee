@@ -1,0 +1,69 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ vss-a25-l25 building router hsrp ~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name PHSG01-MANLAN
+!
+!
+interface Port-channel2
+ switchport trunk allowed vlan add 3737
+!
+interface vlan3737
+  description PHSG01-MANLAN
+  mtu 9216
+  ip address 10.45.56.190 255.255.255.192
+  no shutdown
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-04 building distribution switch ~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name PHSG01-MANLAN
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 3737
+!
+interface Port-channel2
+ switchport trunk allowed vlan add 3737
+!
+interface Port-channel3
+ switchport trunk allowed vlan add 3737
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-24 building access switch #1 ~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name PHSG01-MANLAN
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 3737
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-23 building access switch #1 ~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name PHSG01-MANLAN
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 3737
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 

@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Comparison Result</title>
+
+    <!-- Include the local stylesheet -->
+    <link rel="stylesheet" href="../html_templates/styles.css">
+</head>
+<!-- Include the Google Fonts link -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inria+Sans:wght@300&family=Merriweather:wght@300&display=swap" rel="stylesheet">
+
+
+<body>
+    <h1>Comparison Result</h1>
+
+    <div>
+        <p>How to interpret colors:</p>
+    </div>
+    <div>
+        <ul>
+            <li>Variable in golden line, and user line value is valid: <span class="replace-var-word">var</span>
+            </li>
+            <li>Variable in golden line, but user line value is invalid: <span class="replace-var-err-word">varErr</span>
+            </li>
+            <li>Non-variable chars in golden but different in user: <span class="replace-word">differ</span>
+            </li>
+            <li>Non-variable chars in golden line but not in user line: <span class="delete-word">charsInGld</span>
+            </li>
+            <li>Non-variable chars in user line but not in golden line: <span class="insert-word">charsInUsr</span>
+            </li>
+            <li>Non-variable chars in golden and identical in user: <span class="equal-word">sameChars</span>
+            </li>
+            <li>Lines in golden with no similar counterpart in user: <span class="missing-line">(missing line)</span>
+            </li>
+            <li>Lines in user with no similar counterpart in golden: <span class="extra-line">Abc (extra line)</span>
+            </li>
+        </ul>
+    </div>
+
+    <hr> <br>
+    
+    <div>
+        Structure of user config: <br>
+        <ul><li>(1, 'VRF')</li></ul>
+    </div>
+    <br>
+    <div class="cmp-box-parent">
+        <div class="cmp-box-item left-box">1<span class="equal-word">! ########### VRF START ########### 
+</span> <br>2<span class="equal-word">!
+</span><span class="equal-word"></span> <br>3<span class="equal-word">ip vr</span><span class="delete-word">f</span><span class="equal-word"> </span><span class="delete-word">{VRF_n</span><span class="equal-word">a</span><span class="replace-word">me</span><span class="equal-word">
+</span><span class="equal-word"></span> <br>4<span class="equal-word">  rd 64000:</span><span class="equal-word">{RD_ID}</span><span class="equal-word">
+</span><span class="equal-word"></span> <br>5<span class="equal-word">  route-target </span><span class="equal-word">expo</span><span class="delete-word">r</span><span class="equal-word">t 64000:</span><span class="equal-word">{RD_ID}</span><span class="equal-word">
+</span><span class="equal-word"></span> <br>6<span class="equal-word">!
+</span><span class="equal-word"></span> <br>6<span class="extra-line">(extra line in user)</span> <br>6<span class="extra-line">(extra line in user)</span> <br>7<span class="equal-word">vlan </span><span class="equal-word">{Vlan_ID}</span><span class="equal-word">
+</span><span class="equal-word"></span> <br>8<span class="equal-word">  name </span><span class="equal-word">{FW_context_name}</span><span class="equal-word">-VRFGLUE=</span><span class="equal-word">{VRF_name}</span><span class="equal-word"></span> <br>
+        </div>
+
+        <div class="cmp-box-item right-box">
+        
+        
+
+            1:<span class="equal-word">! ########### VRF START aa ########### 
+ (sec name matches)</span> <br>
+
+            2:<span class="equal-word">!</span><span class="equal-word"></span> <br>
+
+            3:<span class="equal-word">ip vr</span><span class="delete-word"> </span><span class="equal-word"> </span><span class="delete-word"> </span><span class="equal-word">a</span><span class="replace-word">aa</span><span class="equal-word"></span><span class="equal-word"></span> <br>
+
+            4:<span class="equal-word">  rd 64000:</span><span class="replace-var-err-word">34435</span><span class="equal-word"></span><span class="equal-word"></span> <br>
+
+            5:<span class="insert-word">   </span><span class="equal-word">  route-target </span><span class="insert-word">  </span><span class="equal-word">expo</span><span class="delete-word"> </span><span class="equal-word">t 64000:</span><span class="replace-var-word">3435</span><span class="equal-word"></span><span class="equal-word"></span> <br>
+
+            <span class="missing-line">  name {FW_context_name}-VRFGLUE={VRF_name}</span><span class="missing-line">(missing line from golden)</span><span class="equal-word"></span> <br>
+
+            6:<span class="extra-line">!wwwwwwwwwwwwwwwww (extra line)</span> <br>
+
+            7:<span class="extra-line">extra (extra line)</span> <br>
+
+            8:<span class="equal-word">vlan </span><span class="replace-var-word">645</span><span class="equal-word"></span><span class="equal-word"></span> <br>
+
+            9:<span class="equal-word">  name </span><span class="replace-var-word">ABCD12</span><span class="equal-word">-VRFGLUE=</span><span class="replace-var-err-word">abcd-xy12</span><span class="equal-word"></span> <br>
+        </div>
+    </div>
+</body>
+</html>

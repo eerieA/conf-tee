@@ -1,0 +1,138 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ test_asa_243 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### VRF START ########### 
+changeto context system
+config terminal
+!
+!
+interface Port-channel{int_#}.{Vlan_ID_vrfglue}
+  vlan {Vlan_ID_vrfglue}
+  no shut
+!
+context {FW_context_name}
+  allocate-interface Port-channel{int_#}.{Vlan_ID_vrfglue} visible
+!
+end
+!
+!copy running startup
+!
+changeto context {FW_context_name}
+config terminal
+!
+!
+interface Port-channel{int_#}.{Vlan_ID_vrfglue}
+  nameif {VRF_name}
+  security-level 50
+  ip address {Vrfglue_prefix_1st_IP} {Vrfglue_prefix_netmask} standby {{Vrfglue_prefix_1st_IP}+1}
+!
+object-group network VRF_{VRF_name}_Subnets
+  network-object {Vrfglue_prefix} {Vrfglue_prefix_netmask}
+!
+object-group network All_VRF_Subnets
+  group-object VRF_{VRF_name}_Subnets
+!
+access-list {VRF_name}_access_in extended permit ip {Vrfglue_prefix} {Vrfglue_prefix_netmask} any
+!
+access-group {VRF_name}_access_in in interface {VRF_name}
+!
+mtu {VRF_name} 8500
+!
+!
+ip verify reverse-path interface {VRF_name}
+!
+monitor-interface {VRF_name}
+!
+icmp permit any {VRF_name}
+!
+!copy running startup
+!
+! ########### VRF END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ test_hsrp_s_router_257 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf {VRF_name}
+  rd 64000:{RD_#}
+  route-target export 64000:{RD_#}
+  route-target import 64000:{RD_#}
+!
+vlan {Vlan_ID_vrfglue}
+  name {FW_context_name}-VRFGLUE={VRF_name}
+!
+interface Port-channel1
+ switchport trunk allowed vlan add {Vlan_ID_vrfglue}
+!
+Interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_vrfglue}
+!
+interface vlan{Vlan_ID_vrfglue}
+  description {FW_context_name}-VRFGLUE={VRF_name}
+  mtu 9216
+  ip vrf forwarding {VRF_name}
+  ip address {{Vrfglue_prefix_last_IP}-1} {Vrfglue_prefix_netmask}
+  standby ip {Vrfglue_prefix_last_IP} 
+  standby preempt
+  standby priority 105
+  standby authentication md5 key-string 0 {key_word}
+  no shutdown
+!
+router bgp 64000
+  address-family ipv4 vrf {VRF_name}
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+ip route {Vrfglue_prefix} {Vrfglue_prefix_netmask} {GW-FW_outside_IP} name {FW_context_name}:{FW_context_name}-VRFGLUE={VRF_name}
+!
+ip route vrf {VRF_name} 0.0.0.0 0.0.0.0 {Vrfglue_prefix_1st_IP} name {FW_context_name}:DEFAULT-ROUTE={VRF_name}
+!
+!copy running start
+!
+! ########### VRF END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ test_hsrp_a_router_186 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf {VRF_name}
+  rd 64000:{RD_#}
+  route-target export 64000:{RD_#}
+  route-target import 64000:{RD_#}
+!
+vlan {Vlan_ID_vrfglue}
+  name {FW_context_name}-VRFGLUE={VRF_name}
+!
+interface Port-channel1
+ switchport trunk allowed vlan add {Vlan_ID_vrfglue}
+!
+Interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_vrfglue}
+!
+interface vlan{Vlan_ID_vrfglue}
+  description {FW_context_name}-VRFGLUE={VRF_name}
+  mtu 9216
+  ip vrf forwarding {VRF_name}
+  ip address {{Vrfglue_prefix_last_IP}-2} {Vrfglue_prefix_netmask}
+  standby ip {Vrfglue_prefix_last_IP} 
+  standby preempt
+  standby priority 100
+  standby authentication md5 key-string 0 {key_word}
+  no shutdown
+!
+router bgp 64000
+  address-family ipv4 vrf {VRF_name}
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+ip route {Vrfglue_prefix} {Vrfglue_prefix_netmask} {GW-FW_outside_IP} name {FW_context_name}-VRFGLUE={VRF_name}
+!
+ip route vrf {VRF_name} 0.0.0.0 0.0.0.0 {Vrfglue_prefix_1st_IP} name {FW_context_name}:DEFAULT-ROUTE={VRF_name}
+!
+!copy running startup
+!
+! ########### VRF END ############# 

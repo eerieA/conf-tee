@@ -1,0 +1,285 @@
+~~~~~~~~~~~~~~~~~~~~~  fw1-ctx FW context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### CONTEXT START ########### 
+changeto context system
+config terminal
+!
+!
+interface Port-channel{int_#}.{Vlan_ID_fwglue}
+  vlan {Vlan_ID_fwglue}
+  no shut
+!
+context {FW_context_name}
+  description {FW_context_name} Virtual Network Context
+  allocate-interface Port-channel{int_#}.{Vlan_ID_fwglue} visible
+  config-url disk0:/{FW_context_name}.cfg
+!
+!copy running startup
+!
+changeto context {FW_context_name}
+config terminal
+!
+!
+hostname {FW_context_name}-fwm
+!
+domain-name net.example.net
+!
+http server enable
+enable password {password}
+!
+interface Port-channel{int_#}.{Vlan_ID_fwglue}
+  nameif FWGLUE
+  security-level 0
+  ip address {FWGLUE_Prefix_1st_IP} {FWGLUE_Prefix_netmask} standby {{FWGLUE_Prefix_1st_IP}+1}
+!
+dns-guard
+!
+dns server-group DefaultDNS
+  domain-name net.example.net
+!
+same-security-traffic permit inter-interface
+!
+object network Primary-Internal-DNS
+  host 137.82.1.2
+object network Secondary-Internal_DNS
+  host 142.103.1.42
+object network Primary-External-DNS
+  host 137.82.1.1
+object network Secondary-External-DNS
+  host 142.103.1.1
+!
+object network Primary-WINS
+  host 137.82.1.10
+object network Secondary-WINS
+  host 137.82.47.10
+!
+object network Primary-NTP
+  host 137.82.1.1
+object network Secondary-NTP
+  host 142.103.1.1
+!
+object network Transmogrifier
+  host 137.82.27.161
+object network Backup-Server
+  host 137.82.6.111
+object network Intermapper1
+  host 137.82.5.97
+object network Intermapper2
+  host 137.82.5.98
+object network Intermapper3
+  host 142.103.152.52
+object network Intermapper4
+  host 142.103.152.55
+  !
+object network NETMAN-Subnet1
+  subnet 137.82.5.0 255.255.255.0
+object network NETMAN-Subnet2
+  subnet 137.82.6.0 255.255.255.128
+object network NETMAN-Subnet3
+  subnet 137.82.33.0 255.255.255.0
+object network NETMAN-Subnet4
+  subnet 142.103.1.224 255.255.255.224
+object network NETMAN-Subnet5
+  subnet 142.103.152.32 255.255.255.224
+!
+object network CORP_Private_IP
+  subnet 10.0.0.0 255.0.0.0
+!
+object-group network NGRP_NETMAN
+  description CORP IT Network Managers
+  network-object host 137.82.27.161
+  network-object host 137.82.5.97
+  network-object host 137.82.5.98
+  network-object host 142.103.152.52
+  network-object host 142.103.152.55
+  network-object host 137.82.6.111
+  network-object 137.82.5.0 255.255.255.0
+  network-object 137.82.6.0 255.255.255.128
+  network-object 137.82.33.0 255.255.255.0
+  network-object 142.103.1.224 255.255.255.224
+  network-object 142.103.152.32 255.255.255.224
+!
+object-group network NGRP_CAMPUS_A
+  description CORP Vancouver Campus
+  network-object 10.0.0.0 255.0.0.0
+  network-object 137.82.0.0 255.255.0.0
+  network-object 142.103.0.0 255.255.0.0
+  network-object 128.189.16.0 255.255.240.0
+  network-object 128.189.64.0 255.255.224.0
+  network-object 128.189.96.0 255.255.224.0
+  network-object 128.189.128.0 255.255.192.0
+  network-object 128.189.192.0 255.255.192.0
+  network-object 142.90.0.0 255.255.0.0
+  network-object 198.162.32.0 255.255.224.0
+  network-object 206.12.32.0 255.255.248.0
+  network-object 206.12.40.0 255.255.248.0
+  network-object 206.12.64.0 255.255.240.0
+  network-object 206.87.96.0 255.255.224.0
+  network-object 206.87.128.0 255.255.224.0
+  network-object 206.87.192.0 255.255.224.0
+  network-object 206.87.224.0 255.255.240.0
+  network-object 206.12.192.0 255.255.248.0
+!
+object-group network NGRP_CAMPUS_B
+  description CORP Okanagan Campus
+  network-object 142.231.64.0 255.255.224.0
+  network-object 206.87.0.0 255.255.192.0
+!
+object-group network NGRP_CAMPUS_AB
+  description CORP Vancouver and Okanagan Campuses
+  group-object NGRP_CAMPUS_B
+  group-object NGRP_CAMPUS_A
+!
+object-group network NGRP_CAMPUS_A_NoRes
+  description CORP Vancouver Campus No Resnet
+  network-object 10.0.0.0 255.0.0.0
+  network-object 137.82.0.0 255.255.0.0
+  network-object 142.103.0.0 255.255.0.0
+  network-object 128.189.64.0 255.255.224.0
+  network-object 128.189.96.0 255.255.224.0
+  network-object 128.189.192.0 255.255.192.0
+  network-object 142.90.0.0 255.255.0.0
+  network-object 198.162.32.0 255.255.224.0
+  network-object 206.12.32.0 255.255.248.0
+  network-object 206.12.40.0 255.255.248.0
+  network-object 206.12.64.0 255.255.240.0
+  network-object 206.87.96.0 255.255.224.0
+  network-object 206.87.128.0 255.255.224.0
+  network-object 206.87.192.0 255.255.224.0
+  network-object 206.87.224.0 255.255.240.0
+  network-object 206.12.192.0 255.255.248.0
+!
+object-group network NGRP_CAMPUS_AB_NoRes
+  description CORP Vancouver and Okanagan Campuses No Resnet
+  group-object NGRP_CAMPUS_B
+  group-object NGRP_CAMPUS_A_NoRes
+!
+!
+access-list FWGLUE_access_in extended deny ip any any
+!
+access-group FWGLUE_access_in in interface FWGLUE
+!
+logging enable
+logging trap informational
+logging asdm informational
+logging device-id hostname
+logging host FWGLUE Firewall-Log-Server
+!
+!
+mtu FWGLUE 8500
+!
+!
+monitor-interface FWGLUE
+!
+icmp unreachable rate-limit 1 burst-size 1
+!
+icmp permit host Intermapper1 FWGLUE
+icmp permit host Intermapper2 FWGLUE
+icmp permit host Intermapper3 FWGLUE
+icmp permit host Intermapper4 FWGLUE
+icmp permit host Transmogrifier FWGLUE
+icmp permit host Backup-Server FWGLUE
+!
+asdm history enable
+!
+route FWGLUE 0.0.0.0 0.0.0.0 {FWGLUE_Prefix_last_IP} 1
+!
+aaa authorization command LOCAL
+aaa authentication ssh console LOCAL
+aaa authentication http console LOCAL
+aaa authentication enable console LOCAL
+!
+!
+snmp-server host FWGLUE Transmogrifier poll community Corp.Info version 2c
+snmp-server host FWGLUE Intermapper1 poll community Corp.Info version 2c
+snmp-server host FWGLUE Intermapper2 poll community Corp.Info version 2c
+snmp-server host FWGLUE Intermapper3 poll community Corp.Info version 2c
+snmp-server host FWGLUE Intermapper4 poll community Corp.Info version 2c
+no snmp-server location
+no snmp-server contact
+!
+!
+ssh timeout 30
+ssh version 2
+crypto key generate rsa noconfirm
+!
+tcp-map allow-urgent-flag
+  urgent-flag allow
+class-map TCP
+ match port tcp range 1 65535
+!
+policy-map global_policy
+  class TCP
+    set connection random-sequence-number disable
+    set connection advanced-options allow-urgent-flag
+  class inspection_default
+    inspect icmp
+    no inspect sunrpc
+!
+!
+tftp-server FWGLUE Backup-Server /
+!
+!
+!copy running startup
+! ########### CONTEXT END ############ 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub1 context router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### CONTEXT START ########### 
+!
+config terminal
+!
+vlan {Vlan_ID_fwglue}
+  name {FW_context_name}-FWGLUE
+!
+interface Port-channel1
+ switchport trunk allowed vlan add {Vlan_ID_fwglue}
+!
+Interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_fwglue}
+!
+!
+interface vlan{Vlan_ID_fwglue}
+  description {FW_context_name}-FWGLUE
+  mtu 9216
+  ip address {{FWGLUE_Prefix_last_IP}-1} {FWGLUE_Prefix_netmask}
+  standby ip {FWGLUE_Prefix_last_IP}
+  standby preempt
+  standby priority 105
+  standby authentication md5 key-string 0 {key_word}
+  no shutdown
+!
+router ospf 2
+  network {FWGLUE_Prefix} {Inv_FWGLUE_Prefix_netmask} area {OSPF_area_#}
+!
+!copy running startup
+! ########### CONTEXT END ############ 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub1 context router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### CONTEXT START ########### 
+!
+vlan {Vlan_ID_fwglue}
+  name {FW_context_name}-FWGLUE
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_fwglue}
+!
+interface vlan{Vlan_ID_fwglue}
+  description {FW_context_name}-FWGLUE
+  mtu 9216
+  ip address {{FWGLUE_Prefix_last_IP}-2} 255.255.255.248
+  standby ip {FWGLUE_Prefix_last_IP}
+  standby preempt
+  standby priority 100
+  standby authentication md5 key-string 0 {key_word}
+  no shutdown
+!
+router ospf 2
+  network {FWGLUE_Prefix} {Inv_FWGLUE_Prefix_netmask} area {OSPF_area_#}
+!
+!copy running startup
+! ########### CONTEXT END ############ 
+
+

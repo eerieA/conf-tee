@@ -1,0 +1,73 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub1 building router hsrp ~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_6_Vlan_name}
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub1 building router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_6_Vlan_name}
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ building distribution switch ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_6_Vlan_name}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ building access switch #1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_6_Vlan_name}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ building access switch #2 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_6_Vlan_name}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+

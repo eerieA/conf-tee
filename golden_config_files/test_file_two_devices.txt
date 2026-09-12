@@ -1,0 +1,79 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctx FW Context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### VRF START ########### 
+changeto context system
+config terminal
+!
+!
+interface Vlan{Vlan_ID_user}
+  no shut
+!
+context {FW_context_name}
+  allocate-interface Vlan{Vlan_ID_user} visible
+!
+changeto context {FW_context_name}
+config terminal
+!
+!
+interface Vlan{Vlan_ID_user}
+  nameif {VRF_name}
+  security-level 50
+  ip address {Vrfglue_prefix_1st_IP} 255.255.255.248 standby {{Vrfglue_prefix_1st_IP}+1}
+!
+object-group network VRF_{VRF_name}_Subnets
+  network-object {Vrfglue_prefix} 255.255.255.248
+!
+object-group network All_VRF_Subnets
+  group-object VRF_{VRF_name}_Subnets
+!
+access-list {VRF_name}_access_in extended permit ip {Vrfglue_prefix} 255.255.255.248 any
+!
+access-group {VRF_name}_access_in in interface {VRF_name}
+!
+mtu {VRF_name} 8500
+!
+!
+ip verify reverse-path interface {VRF_name}
+!
+monitor-interface {VRF_name}
+!
+icmp permit any {VRF_name}
+!
+! ########### VRF END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ vss-a25-l25 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf {VRF_name}
+  rd 64000:{RD_ID}
+  route-target export 64000:{RD_ID}
+  route-target import 64000:{RD_ID}
+!
+vlan {Vlan_ID_user}
+  name {FW_context_name}-VRFGLUE={VRF_name}
+!
+firewall vlan-group 4 {Vlan_ID_user}
+!
+interface vlan{Vlan_ID_user}
+  description {FW_context_name}-VRFGLUE={VRF_name}
+  mtu 9216
+  ip vrf forwarding {VRF_name}
+  ip address {Vrfglue_prefix_last_IP} 255.255.255.248
+  no shutdown
+!
+router bgp 64000
+  address-family ipv4 vrf {VRF_name}
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+ip route {Vrfglue_prefix} 255.255.255.248 {GW-FW_outside_IP} name {FW_context_name}-VRFGLUE={VRF_name}
+!
+ip route vrf {VRF_name} 0.0.0.0 0.0.0.0 {GW-FW_inside_IP} name {FW_context_name}:DEFAULT-ROUTE={VRF_name}
+!
+! ########### VRF END ############# 
+
+

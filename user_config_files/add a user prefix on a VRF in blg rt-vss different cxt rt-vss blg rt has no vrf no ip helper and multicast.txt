@@ -1,0 +1,121 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctxm FW context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+changeto context NOVA22
+config terminal
+!
+!
+object-group network VRF_NOVA-LINK22_Subnets
+  network-object 10.45.55.160 255.255.255.224
+!
+access-list NOVA-LINK22_access_in extended permit ip 10.45.55.160 255.255.255.224 any
+!
+route NOVA-LINK22 10.45.55.160 255.255.255.224 10.45.54.214 1
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~ vss-a25-l25 FW context router vss ~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+ip route 10.45.55.160 255.255.255.224 10.45.54.25 name NOVA22:BLDC01-WLAN13=NOVA-LINK22
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~ vss-a24-l24 building router vss ~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf NOVA-LINK22
+  rd 64000:3425
+  route-target export 64000:3425
+  route-target import 64000:3425
+!
+router bgp 64000
+  address-family ipv4  vrf NOVA-LINK22
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+! ########### VRF END ############# 
+
+
+! ########### USER PREFIX START ########### 
+!
+vlan 574
+  name BLDC01-WLAN13=NOVA-LINK22
+!
+interface Port-channel72
+ switchport trunk allowed vlan add 574
+!
+interface vlan574
+  description BLDC01-WLAN13=NOVA-LINK22
+  mtu 9216
+  ip vrf forwarding NOVA-LINK22
+  ip address 10.45.55.190 255.255.255.224
+  no shutdown
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg03-sw01-01 building distribution switch ~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 574
+  name BLDC01-WLAN13=NOVA-LINK22
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 574
+!
+interface Port-channel50
+ switchport trunk allowed vlan add 574
+!
+interface Port-channel3
+ switchport trunk allowed vlan add 574
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg03-sw01-02 building access switch #1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 574
+  name BLDC01-WLAN13=NOVA-LINK22
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 574
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg03-sw01-11 building access switch #2 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 574
+  name BLDC01-WLAN13=NOVA-LINK22
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 574
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+

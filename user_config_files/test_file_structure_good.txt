@@ -1,0 +1,19 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctx FW Context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### VRF START ########### 
+!
+pass 1234 tt
+! ########### VRF END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~ buildling distribution switch ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+pass 1234 (this is extra substring, and the ratio will make the program see this as an extra line.)
+! ########### USER PREFIX END ############# 
+
+! ########### VRF START ########### 
+!
+pass 1234
+! ########### VRF END ############# 
+

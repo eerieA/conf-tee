@@ -1,0 +1,79 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctx ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### VRF START ########### 
+changeto context system
+config terminal
+!
+!
+interface Vlan621
+  no shut
+!
+context NOVA33
+  allocate-interface Vlan611 visible
+!
+changeto context NOVA33
+config terminal
+!
+!
+interface Vlan611
+  nameif NOVA-WLAN31
+  security-level 50
+  ip address 10.45.55.241 255.255.255.248 standby 10.45.55.242
+!
+object-group network VRF_NOVA-WLAN31_Subnets
+  network-object 10.45.55.240 255.255.255.248
+!
+object-group network All_VRF_Subnets
+  group-object VRF_NOVA-WLAN31_Subnets
+!
+access-list NOVA-WLAN31_access_in extended permit ip 10.45.55.240 255.255.255.248 any
+!
+access-group NOVA-WLAN31_access_in in interface NOVA-WLAN31
+!
+mtu NOVA-WLAN31 8500
+!
+!
+ip verify reverse-path interface NOVA-WLAN31
+!
+monitor-interface NOVA-WLAN31
+!
+icmp permit any NOVA-WLAN31
+!
+! ########### VRF END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ vss-a25-l25 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf NOVA-WLAN31
+  rd 64000:3435
+  route-target export 64000:3435
+  route-target import 64000:3435
+!
+vlan 611
+  name NOVA33-VRFGLUE=NOVA-WLAN31
+!
+firewall vlan-group 4 611
+!
+interface Vlan611
+  description NOVA55-VRFGLUE=NOVA-WLAN31
+  mtu 9216
+  ip vrf forwarding NOVA-WLAN31
+  ip address 10.45.55.246 255.255.255.248
+  no shutdown
+!
+router bgp 64000
+  address-family  vrf NOVA-WLAN31
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+ip route 10.45.55.240 255.255.255.248 10.45.54.17 name NOVA33-VRFGLUE=NOVA-WLAN31
+!
+ip route vrf NOVA-WLAN31 0.0.0.0 0.0.0.0 10.45.55.241 name NOVA33:DEFAULT-ROUTE=NOVA-WLAN31
+!
+! ########### VRF END ############# 
+
+

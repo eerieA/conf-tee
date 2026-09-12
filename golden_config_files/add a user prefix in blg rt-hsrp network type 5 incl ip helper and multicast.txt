@@ -1,0 +1,121 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub28 building router hsrp ~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_5_Vlan_name}
+!
+interface {int_name_A}{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface vlan{Vlan_ID_user}
+  description {net_type_5_Vlan_name}
+  ip address {{User_Prefix_last_IP}-1} {User_prefix_netmask}
+  ip helper-address {IP_helper_address}
+  standby ip  {User_Prefix_last_IP}
+  standby preempt
+  standby priority 105
+  standby authentication md5 key-string 0 {key_word}
+  no shutdown
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+! ########### MULTICAST START ########### 
+!
+interface Vlan{Vlan_ID_user}
+  ip pim sparse-mode
+!
+!copy running start
+!
+! ########### MULTICAST END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub28 building router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_5_Vlan_name}
+!
+interface {int_name_L}{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface vlan{Vlan_ID_user}
+  description {net_type_5_Vlan_name}
+  ip address {{User_Prefix_last_IP}-2} {User_prefix_netmask}
+  ip helper-address {IP_helper_address}
+  standby ip  {User_Prefix_last_IP}
+  standby preempt
+  standby priority 100
+  standby authentication md5 key-string 0 {key_word}
+  no shutdown
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+! ########### MULTICAST START ########### 
+!
+interface Vlan{Vlan_ID_user}
+  ip pim sparse-mode
+!
+!copy running start
+!
+! ########### MULTICAST END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-04 building distribution switch ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_5_Vlan_name}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface {int_name_A}{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface {int_name_L}{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-24 building access switch #1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_5_Vlan_name}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-23 building access switch #2 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_5_Vlan_name}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+

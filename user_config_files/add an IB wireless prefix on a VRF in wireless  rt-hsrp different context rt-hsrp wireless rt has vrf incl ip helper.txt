@@ -1,0 +1,132 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw1-ctxm FW context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### WIRELESS PREFIX START ########### 
+!
+changeto context NOVA22
+config terminal
+!
+!
+object-group network VRF_NOVA-LINK22_Subnets
+  network-object 10.45.55.208 255.255.255.240
+!
+access-list NOVA-LINK22_SUBNETS_access_in extended permit ip 10.45.55.208 255.255.255.240 any
+!
+route NOVA-LINK22 10.45.55.208 255.255.255.240 10.45.54.214 1
+!
+! ########### WIRELESS PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub1 FW context router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### WIRELESS PREFIX START ########### 
+!
+ip route 10.45.55.208 255.255.255.240 10.45.54.25 name NOVA22:WCOR01-WIRELESS15=NOVA-LINK22
+!
+! ########### WIRELESS PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub1 FW context router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### WIRELESS PREFIX START ########### 
+!
+ip route 10.45.55.208 255.255.255.240 10.45.54.25 name NOVA22:WCOR01-WIRELESS15=NOVA-LINK22
+!
+! ########### WIRELESS PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub33 wireless router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### WIRELESS PREFIX START ########### 
+!
+vlan 4
+  name WCOR01-WIRELESS15=NOVA-LINK22
+!
+interface Port-channel35
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel33
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel15
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel14
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel18
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel16
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel17
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel31
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel32
+ switchport trunk allowed vlan add 4
+!
+interface vlan4
+  description WCOR01-WIRELESS15=NOVA-LINK22
+  mtu 9216
+  ip vrf forwarding NOVA-LINK22
+  ip address 10.45.55.221 255.255.255.240
+  ip helper-address 10.100.100.1
+  standby ip 10.45.55.222
+  standby preempt
+  standby priority 105
+  standby authentication md5 key-string 0 aretwtea4argerk
+  no shutdown
+!
+! ########### WIRELESS PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub33 wireless router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### WIRELESS PREFIX START ########### 
+!
+vlan 4
+  name WCOR01-WIRELESS15=NOVA-LINK22
+!
+interface Port-channel35
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel33
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel15
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel14
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel18
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel16
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel17
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel31
+ switchport trunk allowed vlan add 4
+!
+interface Port-channel32
+ switchport trunk allowed vlan add 4
+!
+interface vlan4
+  description WCOR01-WIRELESS15=NOVA-LINK22
+  mtu 9216
+  ip vrf forwarding NOVA-LINK22
+  ip address 10.45.55.220 255.255.255.240
+  ip helper-address 10.100.100.1
+  standby ip 10.45.55.222
+  standby preempt
+  standby priority 100
+  standby authentication md5 key-string 0 aretwtea4argerk
+  no shutdown
+!
+! ########### WIRELESS PREFIX END ############# 
+

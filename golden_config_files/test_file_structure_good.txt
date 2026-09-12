@@ -1,0 +1,20 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctx FW Context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### VRF START ########### 
+!
+pass {Vlan_ID_user}
+! ########### VRF END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~ buildling distribution switch ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+! ########### USER PREFIX START ########### 
+!
+pass {Vlan_ID_user}
+pass {RD_ID}
+! ########### USER PREFIX END ############# 
+
+! ########### VRF START ########### 
+!
+pass {Vlan_ID_user}
+! ########### VRF END ############# 

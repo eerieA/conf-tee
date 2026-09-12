@@ -1,0 +1,1577 @@
+{
+ "add a FW context connected to HSRP router pair.txt": {
+  "report_sha": "9cfb51c83394c5cf",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a FW context connected to VSS router pair.txt": {
+  "report_sha": "1f954109e0105e75",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a VRF connected to a FW context on HSRP router pair without multicast.txt": {
+  "report_sha": "e2dde5cc70c3675d",
+  "summary": [
+   [
+    1,
+    "value mismatches"
+   ],
+   [
+    3,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    94,
+    "missed or extra lines"
+   ],
+   [
+    4,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a VRF connected to a FW context on VSS router pair without multicast.txt": {
+  "report_sha": "ff95264fc6063660",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    3,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    76,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix in blg rt-hsrp network type 5 incl ip helper and multicast.txt": {
+  "report_sha": "ae907ecbcb8ce329",
+  "summary": [
+   [
+    6,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    2,
+    "missed or extra lines"
+   ],
+   [
+    5,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix in blg rt-hsrp network type 5 no ip helper and multicast.txt": {
+  "report_sha": "4d7d5c8539310010",
+  "summary": [
+   [
+    6,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    2,
+    "missed or extra lines"
+   ],
+   [
+    5,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix in blg rt-vss network type 5 incl ip helper and multicast.txt": {
+  "report_sha": "ea70d8fd0f5305f8",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    5,
+    "missed or extra lines"
+   ],
+   [
+    3,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix in blg rt-vss network type 5 no ip helper and multicast.txt": {
+  "report_sha": "ac31fa87275c4ecf",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    1,
+    "missed or extra lines"
+   ],
+   [
+    3,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-hsrp blg rt has no vrf incl ip helper and new MC on SVI and vrf in blg rt MC already on vrf in cxt rts.txt": {
+  "report_sha": "e1de1bd728b6b46e",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-hsrp blg rt has no vrf incl ip helper and new MC on SVI and vrf in both blg and cxt rts.txt": {
+  "report_sha": "be17fdf99453da26",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    2,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-hsrp blg rt has no vrf no ip helper and multicast.txt": {
+  "report_sha": "243880e0dd86c6aa",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-hsrp blg rt has vrf incl ip helper and new MC on SVI and vrf in blg rt MC already on vrf in cxt rts.txt": {
+  "report_sha": "65f928300fda86f7",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-hsrp blg rt has vrf incl ip helper and new MC on SVI and vrf in both blg and cxt rts.txt": {
+  "report_sha": "64a4cdd4a11e4fdc",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    2,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-hsrp blg rt has vrf incl ip helper and new MC on SVI only vrf has MC already in both rts.txt": {
+  "report_sha": "dc2983bf16d088e8",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-hsrp blg rt has vrf no ip helper and multicast.txt": {
+  "report_sha": "fdda35fd56ff4316",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-vss blg rt has no vrf incl ip helper and new MC on SVI and vrf in blg rt MC already on vrf in cxt rt.txt": {
+  "report_sha": "9c1ff41544e9066e",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-vss blg rt has no vrf incl ip helper and new MC on SVI and vrf in both blg and cxt rts.txt": {
+  "report_sha": "6bde16d9924c7ad0",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-vss blg rt has no vrf incl ip helper no multicast.txt": {
+  "report_sha": "7f44d0879ae96e06",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-vss blg rt has vrf incl ip helper and new MC on SVI and vrf in blg rt MC already on vrf in cxt rt.txt": {
+  "report_sha": "0bd1af9e2e47766d",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-vss blg rt has vrf incl ip helper and new MC on SVI and vrf in both blg and cxt rts.txt": {
+  "report_sha": "2ad17ee0d0082ce6",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-vss blg rt has vrf incl ip helper and new MC on SVI only vrf has MC already in both rts.txt": {
+  "report_sha": "00bea99085788d7a",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp different cxt rt-vss blg rt has vrf incl ip helper no multicast.txt": {
+  "report_sha": "a9e2151ad80bc7ec",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp network type 4 incl ip helper.txt": {
+  "report_sha": "fc827faba548a1d2",
+  "summary": [
+   [
+    3,
+    "value mismatches"
+   ],
+   [
+    1,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    9,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp network type 4 no ip helper.txt": {
+  "report_sha": "b3f4e84bf62f2ba3",
+  "summary": [
+   [
+    3,
+    "value mismatches"
+   ],
+   [
+    1,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    7,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp same cxt rt-hsrp incl ip helper and new MC on SVI only vrf has MC already.txt": {
+  "report_sha": "52bb946bce0724f3",
+  "summary": [
+   [
+    3,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    7,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp same cxt rt-hsrp incl ip helper and new MC on both SVI and vrf.txt": {
+  "report_sha": "d7ad126e1fe0c7da",
+  "summary": [
+   [
+    3,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    4,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-hsrp same cxt rt-hsrp no ip helper and multicast.txt": {
+  "report_sha": "2f21e6a09071a460",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-hsrp blg rt has no vrf incl ip helper and new MC on SVI and vrf in blg rt MC already on vrf in cxt rt.txt": {
+  "report_sha": "5a3ad0c3074173d7",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-hsrp blg rt has no vrf incl ip helper and new MC on SVI and vrf in both blg and cxt rts.txt": {
+  "report_sha": "96abebf85d0041ad",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    3,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-hsrp blg rt has no vrf no ip helper and multicast.txt": {
+  "report_sha": "71ea63624c301d49",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-hsrp blg rt has vrf incl ip helper and new MC on SVI and vrf in blg rt MC already on vrf in cxt rt.txt": {
+  "report_sha": "0486d62f57e07317",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    5,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-hsrp blg rt has vrf incl ip helper and new MC on SVI and vrf in both blg and cxt rts.txt": {
+  "report_sha": "bf8167dbe2906149",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    3,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-hsrp blg rt has vrf incl ip helper and new MC on SVI only vrf has MC already in both rts.txt": {
+  "report_sha": "2cab96816cf6b9a2",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-hsrp blg rt has vrf no ip helper and multicast.txt": {
+  "report_sha": "aaec4cdade6d026c",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-vss blg rt has no vrf incl ip helper and new MC on SVI and vrf in blg rt MC already on vrf in cxt rt.txt": {
+  "report_sha": "ab1f7e44dd88596a",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-vss blg rt has no vrf incl ip helper and new MC on SVI and vrf in both blg and cxt rts.txt": {
+  "report_sha": "d475a22bf097b871",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-vss blg rt has no vrf no ip helper and multicast.txt": {
+  "report_sha": "8e9dacf116c4428d",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-vss blg rt has vrf incl ip helper and new MC on SVI and vrf in blg rt MC already on vrf in cxt rt.txt": {
+  "report_sha": "ade881bcc18e66ae",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-vss blg rt has vrf incl ip helper and new MC on SVI and vrf in both blg and cxt rts.txt": {
+  "report_sha": "badd704fbb46afb1",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-vss blg rt has vrf incl ip helper and new MC on SVI only vrf has MC already in both rts.txt": {
+  "report_sha": "ade881bcc18e66ae",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss different cxt rt-vss blg rt has vrf no ip helper and multicast.txt": {
+  "report_sha": "0ce429373c995f51",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    1,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss network type 4 incl ip helper.txt": {
+  "report_sha": "726a7521bc69ebfd",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    1,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    11,
+    "missed or extra lines"
+   ],
+   [
+    2,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss network type 4 no ip helper.txt": {
+  "report_sha": "6c6a0c134ee4e5bb",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    1,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    11,
+    "missed or extra lines"
+   ],
+   [
+    2,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss same cxt rt-vss incl ip helper and new MC on SVI only vrf has MC already.txt": {
+  "report_sha": "fa48eb09a6853941",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    3,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss same cxt rt-vss incl ip helper and new MC on both vrf and SVI.txt": {
+  "report_sha": "4fb113cf00e4a9c9",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    3,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user prefix on a VRF in blg rt-vss same cxt rt-vss no ip helper and multicast.txt": {
+  "report_sha": "17407555f916ef3a",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    3,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user vlan in blg rt-hsrp network type 6.txt": {
+  "report_sha": "bd5676aee96eef38",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add a user vlan in blg rt-vss network type 6.txt": {
+  "report_sha": "44b1490c7c2cb0aa",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add an IB VPN prefix on a VRF in VPN gw rt-hsrp different cxt rt-hsrp.txt": {
+  "report_sha": "10ba56afac7ac97b",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add an IB VPN prefix on a VRF in VPN gw rt-hsrp different cxt rt-vss.txt": {
+  "report_sha": "e07855ac7250b68d",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add an IB VPN prefix on a VRF in VPN gw rt-hsrp same cxt rt-hsrp.txt": {
+  "report_sha": "4e5b21c223517189",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    2,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    26,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add an IB wireless prefix on a VRF in wireless  rt-hsrp different context rt-hsrp wireless rt has no vrf incl ip helper.txt": {
+  "report_sha": "1c022ec2f42bccd6",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add an IB wireless prefix on a VRF in wireless  rt-hsrp different context rt-hsrp wireless rt has vrf incl ip helper.txt": {
+  "report_sha": "8b3f270eab327861",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add an IB wireless prefix on a VRF in wireless  rt-hsrp different context rt-vss wireless rt has no vrf incl ip helper.txt": {
+  "report_sha": "0fe328a70e921c1d",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    1,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "add an IB wireless prefix on a VRF in wireless  rt-hsrp different context rt-vss wireless rt has vrf incl ip helper.txt": {
+  "report_sha": "db3282e18b538f4c",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    1,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "test_Building router is HSRP router pair, FW context router is VSS router pair.txt": {
+  "report_sha": "fb1edf9a606d1777",
+  "summary": [
+   [
+    3,
+    "value mismatches"
+   ],
+   [
+    4,
+    "struct mismatches"
+   ],
+   [
+    3,
+    "value inconsistencies"
+   ],
+   [
+    45,
+    "missed or extra lines"
+   ],
+   [
+    6,
+    "command mismatches"
+   ]
+  ]
+ },
+ "test_file_one_line_bad.txt": {
+  "report_sha": "62be2af2e83c9d1f",
+  "summary": [
+   [
+    1,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "test_file_one_section_bad.txt": {
+  "report_sha": "1ceab111e44e34d5",
+  "summary": [
+   [
+    2,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    1,
+    "value inconsistencies"
+   ],
+   [
+    1,
+    "missed or extra lines"
+   ],
+   [
+    3,
+    "command mismatches"
+   ]
+  ]
+ },
+ "test_file_structure_bad.txt": {
+  "report_sha": "0ee57506f1e339c0",
+  "summary": [
+   [
+    2,
+    "value mismatches"
+   ],
+   [
+    4,
+    "struct mismatches"
+   ],
+   [
+    4,
+    "value inconsistencies"
+   ],
+   [
+    12,
+    "missed or extra lines"
+   ],
+   [
+    3,
+    "command mismatches"
+   ]
+  ]
+ },
+ "test_file_structure_good.txt": {
+  "report_sha": "56e029a428b70aae",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    1,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ },
+ "test_file_two_devices.txt": {
+  "report_sha": "879bf7285debb95f",
+  "summary": [
+   [
+    0,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    2,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    2,
+    "command mismatches"
+   ]
+  ]
+ },
+ "test_type_3_hsrp_context_add_vrf.txt": {
+  "report_sha": "e293104fec8a0f6b",
+  "summary": [
+   [
+    10,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    8,
+    "missed or extra lines"
+   ],
+   [
+    13,
+    "command mismatches"
+   ]
+  ]
+ },
+ "test_update_type_3_hsrp_enable_multicast.txt": {
+  "report_sha": "905d22cb4ae34418",
+  "summary": [
+   [
+    2,
+    "value mismatches"
+   ],
+   [
+    0,
+    "struct mismatches"
+   ],
+   [
+    0,
+    "value inconsistencies"
+   ],
+   [
+    0,
+    "missed or extra lines"
+   ],
+   [
+    0,
+    "command mismatches"
+   ]
+  ]
+ }
+}

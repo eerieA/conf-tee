@@ -1,0 +1,56 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ vss-a25-l25 building router hsrp ~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name HOUS02-MECH2=DNET-USER
+!
+interface Port-channel5
+ switchport trunk allowed vlan add 3737
+!
+interface vlan3737
+  description HOUS02-MECH2=DNET-USER
+  mtu 9216
+  ip vrf forwarding DNET-USER
+  ip address 10.45.56.190 255.255.255.192
+  ip helper-address 142.100.1.1
+  no shutdown
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-04 building distribution switch ~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name HOUS02-MECH2=DNET-USER
+!
+interface Port-channel3
+ switchport trunk allowed vlan add 3737
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 3737
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-24 building access switch #1 ~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name HOUS02-MECH2=DNET-USER
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 3737
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+

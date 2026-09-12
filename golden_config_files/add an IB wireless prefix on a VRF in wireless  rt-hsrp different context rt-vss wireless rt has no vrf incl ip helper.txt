@@ -1,0 +1,158 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctxm FW context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### WIRELESS PREFIX START ########### 
+!
+changeto context {FW_context_name}
+config terminal
+!
+!
+object-group network VRF_{VRF_name}_Subnets
+  network-object {User_prefix} {User_prefix_netmask}
+!
+access-list {VRF_name}_access_in extended permit ip {User_prefix} {User_prefix_netmask} any
+!
+route {VRF_name} {User_prefix} {User_prefix_netmask} {GW-VRFGLUE_IP} 1
+!
+! ########### WIRELESS PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub25 FW context router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### WIRELESS PREFIX START ########### 
+!
+ip route {User_prefix} {User_prefix_netmask} {GW-FW_outside_IP} name {FW_context_name}:{Vlan_name}
+!
+! ########### WIRELESS PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub33 wireless router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf {VRF_name}
+  rd 64000:{RD_ID}
+  route-target export 64000:{RD_ID}
+  route-target import 64000:{RD_ID}
+!
+router bgp 64000
+  address-family ipv4 vrf {VRF_name}
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+! ########### VRF END ############# 
+
+
+! ########### WIRELESS PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {Vlan_name}
+!
+interface Port-channel35
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel33
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel15
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel14
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel18
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel16
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel17
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel31
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel32
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface vlan{Vlan_ID_user}
+  description {Vlan_name}
+  mtu 9216
+  ip vrf forwarding {VRF_name}
+  ip address {{User_Prefix_last_IP}-1} {User_prefix_netmask}
+  ip helper-address {IP_helper_address}
+  standby ip  {User_Prefix_last_IP}
+  standby preempt
+  standby priority 105
+  standby authentication md5 key-string 0 {key_word}
+  no shutdown
+!
+! ########### WIRELESS PREFIX END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub33 wireless router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf {VRF_name}
+  rd 64000:{RD_ID}
+  route-target export 64000:{RD_ID}
+  route-target import 64000:{RD_ID}
+!
+router bgp 64000
+  address-family ipv4 vrf {VRF_name}
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+! ########### VRF END ############# 
+
+
+! ########### WIRELESS PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {Vlan_name}
+!
+interface Port-channel35
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel33
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel15
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel14
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel18
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel16
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel17
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel31
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel32
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface vlan{Vlan_ID_user}
+  description {Vlan_name}
+  mtu 9216
+  ip vrf forwarding {VRF_name}
+  ip address {{User_Prefix_last_IP}-2} {User_prefix_netmask}
+  ip helper-address {IP_helper_address}
+  standby ip  {User_Prefix_last_IP}
+  standby preempt
+  standby priority 100
+  standby authentication md5 key-string 0 {key_word}
+  no shutdown
+!
+! ########### WIRELESS PREFIX END ############# 
+

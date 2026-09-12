@@ -1,0 +1,141 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw1-ctx ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+changeto context system
+config terminal
+!
+!
+interface Port-channel2.3725
+  vlan 3725
+  no shut
+!
+context NOVA22
+  allocate-interface Port-channel2.3725 visible
+!
+end
+!
+!copy running startup
+!
+changeto context NOVA22
+config terminal
+!
+!
+interface Port-channel2.3725
+  nameif NOVA-LINK22
+  security-level 50
+  ip address 10.45.54.209 255.255.255.248 standby 10.45.54.210
+!
+object-group network VRF_NOVA-LINK22_Subnets
+  network-object 10.45.54.208 255.255.255.248
+!
+object-group network All_VRF_Subnets
+  group-object VRF_NOVA-LINK22_Subnets
+!
+access-list NOVA-LINK22_access_in extended permit ip 10.45.54.208 255.255.255.248 any
+!
+access-group NOVA-LINK22_access_in in interface NOVA-LINK22
+!
+mtu NOVA-LINK22 8500
+!
+!
+ip verify reverse-path interface NOVA-LINK22
+!
+monitor-interface NOVA-LINK22
+!
+icmp permit any NOVA-LINK22
+!
+!copy running startup
+!
+! ########### VRF END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
+
+! ########### VRF START ########### 
+!
+ip vrf NOVA-LINK22
+  rd 64000:3425
+  route-target export 64000:3425
+  route-target import 64000:3425
+!
+vlan 3725
+  name NOVA22-VRFGLUE=NOVA-LINK22
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 3725
+!
+Interface Port-channel3 
+  switchport trunk allowed vlan add 3725
+!
+interface vlan3725
+  description NOVA22-VRFGLUE=NOVA-LINK22
+  mtu 9216
+  ip vrf forwarding NOVA-LINK22
+  ip address 10.45.54.213 255.255.255.248
+  standby ip 10.45.54.214
+  standby preempt
+  standby priority 105
+  standby authentication md5 key-string 0 ewhr324jflewfjosdfjofds
+  no shutdown
+!
+router bgp 64000
+  address-family ipv4 vrf NOVA-LINK22
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+ip route 10.45.54.208 255.255.255.248 10.45.54.25 name NOVA22:NOVA22-VRFGLUE=NOVA-LINK22
+!
+ip route vrf NOVA-LINK22 0.0.0.0 0.0.0.0 10.45.54.209 name NOVA22:DEFAULT-ROUTE=NOVA-LINK22
+!
+!copy running startup
+!
+! ########### VRF END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf NOVA-LINK22
+  rd 64000:3425
+  route-target export 64000:3425
+  route-target import 64000:3425
+!
+vlan 3725
+  name NOVA22-VRFGLUE=NOVA-LINK22
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 3725
+!
+Interface Port-channel3 
+  switchport trunk allowed vlan add 3725
+!
+interface vlan3725
+  description NOVA22-VRFGLUE=NOVA-LINK22
+  mtu 9216
+  ip vrf forwarding NOVA-LINK22
+  ip address 10.45.54.212 255.255.255.248
+  standby ip 10.45.54.214
+  standby preempt
+  standby priority 100
+  standby authentication md5 key-string 0 ewhr324jflewfjosdfjofds
+  no shutdown
+!
+router bgp 64000
+  address-family ipv4 vrf NOVA-LINK22
+    redistribute connected
+    redistribute static
+    no synchronization
+        network 0.0.0.0
+        exit-address-family
+!
+ip route 10.45.54.208 255.255.255.248 10.45.54.25 name NOVA22-VRFGLUE=NOVA-LINK22
+!
+ip route vrf NOVA-LINK22 0.0.0.0 0.0.0.0 10.45.54.209 name NOVA22:DEFAULT-ROUTE=NOVA-LINK22
+!
+!copy running startup
+!
+! ########### VRF END ############# 
+
+

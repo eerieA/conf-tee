@@ -1,0 +1,75 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~ vss-a25-l25 building router vss ~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_4_Vlan_name}
+!
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface vlan{Vlan_ID_user}
+  description {net_type_4_Vlan_name}
+  mtu 9216
+  ip vrf forwarding {net_type_4_VRF_name}
+  ip address {User_Prefix_last_IP} {User_prefix_netmask}
+  no shutdown
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-04 building distribution switch ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_4_Vlan_name}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-24 building access switch #1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_4_Vlan_name}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ building access switch #2 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan {Vlan_ID_user}
+  name {net_type_4_Vlan_name}
+!
+interface Port-channel{int_#}
+ switchport trunk allowed vlan add {Vlan_ID_user}
+!
+!copy running start
+!
+! ########### USER PREFIX END ############# 
+
+
+

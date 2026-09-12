@@ -1,0 +1,12 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctx FW Context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### VRF START ########### 
+!
+ip vrf {VRF_name
+  rd 64000:{RD_ID}
+  route-target export 64000:{RD_ID}
+!
+vlan {Vlan_ID_user}
+  name {FW_context_name}-VRFGLUE={VRF_name}
+
+vlan {Vlan_ID_user}

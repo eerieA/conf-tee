@@ -1,0 +1,271 @@
+{
+  "fw25-ctx": {
+    "USER PREFIX": [
+      [
+        "missing-line",
+        {
+          "expected": "route {VRF_name} {User_prefix} {User_prefix_netmask} {GW-VRFGLUE_IP} 1",
+          "actual": "",
+          "line": 13
+        }
+      ]
+    ]
+  },
+  "site01-hub1": {
+    "VRF": [
+      [
+        "value-mistach",
+        {
+          "expected": "  rd 64000: 3435",
+          "actual": "  rd 64000:ttt",
+          "explanations": [
+            "ttt for {RD_ID} mismatches the format; luckily we know 3435 for it from other places"
+          ],
+          "line": 22
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "router bgp 64000",
+          "actual": "",
+          "line": 27
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "  address-family ipv4 vrf {VRF_name}",
+          "actual": "",
+          "line": 28
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "    redistribute connected",
+          "actual": "",
+          "line": 29
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "    redistribute static",
+          "actual": "",
+          "line": 30
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "    no synchronization",
+          "actual": "",
+          "line": 31
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "        network 0.0.0.0",
+          "actual": "",
+          "line": 32
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "        exit-address-family",
+          "actual": "",
+          "line": 33
+        }
+      ]
+    ],
+    "USER PREFIX": [
+      [
+        "command-mistach",
+        {
+          "expected": "interface GigabitEthernet2/28",
+          "actual": "interface GigabitEthernet1/36",
+          "explanations": [
+            "The command part differs from that in the golden line at 2 places"
+          ],
+          "line": 35
+        }
+      ],
+      [
+        "value-incons",
+        {
+          "expected": "  description BLDE01-LINK32=NOVA-WLAN31",
+          "actual": "  description BLDE01-LINK32-LINK32=NOVA-WLAN31",
+          "explanations": [
+            "BLDE01-LINK32-LINK32=NOVA-WLAN31 for {Vlan_name} is inconsistent with BLDE01-LINK32=NOVA-WLAN31 (value-incons), at least one of them is wrong"
+          ],
+          "line": 39
+        }
+      ],
+      [
+        "value-wrong-src, value-incons",
+        {
+          "expected": "  ip address <10.45.56.190 - 10.45.56.190> 255.255.255.192",
+          "actual": "  ip address 10.45.56.190 255.255.255.192",
+          "explanations": [
+            "10.45.56.191 (10.45.56.190 for {{User_Prefix_last_IP}-1}) for {User_Prefix_last_IP} is not in expected range (subnet-last-ip): 10.45.56.190 - 10.45.56.190",
+            "10.45.56.190 for {{User_Prefix_last_IP}-1} is inconsistent with 10.45.56.189 (value-incons), at least one of them is wrong"
+          ],
+          "line": 42
+        }
+      ],
+      [
+        "command-mistach",
+        {
+          "expected": "  ip helper-address 142.103.1.1",
+          "actual": "  ip helper-address 135.66.51.21",
+          "explanations": [
+            "The command part differs from that in the golden line at 4 places"
+          ],
+          "line": 43
+        }
+      ],
+      [
+        "command-mistach",
+        {
+          "expected": "  ip helper-address 10.32.57.4",
+          "actual": "  ip helper-address 255.225.157.94",
+          "explanations": [
+            "The command part differs from that in the golden line at 3 places"
+          ],
+          "line": 44
+        }
+      ]
+    ]
+  },
+  "site02-hub1": {
+    "VRF": [
+      [
+        "missing-line",
+        {
+          "expected": "router bgp 64000",
+          "actual": "",
+          "line": 70
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "  address-family ipv4 vrf {VRF_name}",
+          "actual": "",
+          "line": 71
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "    redistribute connected",
+          "actual": "",
+          "line": 72
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "    redistribute static",
+          "actual": "",
+          "line": 73
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "    no synchronization",
+          "actual": "",
+          "line": 74
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "        network 0.0.0.0",
+          "actual": "",
+          "line": 75
+        }
+      ],
+      [
+        "missing-line",
+        {
+          "expected": "        exit-address-family",
+          "actual": "",
+          "line": 76
+        }
+      ]
+    ],
+    "USER PREFIX": [
+      [
+        "command-mistach",
+        {
+          "expected": "interface GigabitEthernet2/28",
+          "actual": "interface GigabitEthernet1/36",
+          "explanations": [
+            "The command part differs from that in the golden line at 2 places"
+          ],
+          "line": 71
+        }
+      ],
+      [
+        "value-incons",
+        {
+          "expected": "  description BLDE01-LINK32=NOVA-WLAN31",
+          "actual": "  description BLDE01-LINK32-LINK32=NOVA-WLAN31",
+          "explanations": [
+            "BLDE01-LINK32-LINK32=NOVA-WLAN31 for {Vlan_name} is inconsistent with BLDE01-LINK32=NOVA-WLAN31 (value-incons), at least one of them is wrong"
+          ],
+          "line": 75
+        }
+      ],
+      [
+        "command-mistach",
+        {
+          "expected": "  standby priority 100",
+          "actual": "  standby priority 105",
+          "explanations": [
+            "The command part differs from that in the golden line at 1 places"
+          ],
+          "line": 83
+        }
+      ]
+    ]
+  },
+  "vss-a25-l25": {
+    "USER PREFIX": [
+      [
+        "value-mistach, value-wrong-src, value-incons, value-wrong-link, command-mistach",
+        {
+          "expected": "ip route <10.45.56.128 - 10.45.56.191> 255.255.255.192 10.45.54.25 name NOVA33: BLDE01-LINK32=NOVA-WLAN31",
+          "actual": "ip route 10.45.56.0 255.255.255.224 10.45.54.17 name BLDE01-=NOVA-WLAN31",
+          "explanations": [
+            "BLDE01-=NOVA-WLAN31 for {FW_context_name} mismatches the format; luckily we know NOVA33 for it from other places",
+            "Missing a value for {Vlan_name}; luckily we know BLDE01-LINK32=NOVA-WLAN31 for it from other places",
+            "10.45.56.0 for {User_prefix} is not in expected range (user_prefix-subnet): 10.45.56.128 - 10.45.56.191",
+            "10.45.56.0 for {User_prefix} is inconsistent with 10.45.56.128 (value-incons), at least one of them is wrong",
+            "255.255.255.224 for {User_prefix_netmask} is inconsistent with 255.255.255.192 (value-incons), at least one of them is wrong",
+            "10.45.54.17 for {GW-FW_outside_IP} is not inherited from 10.45.54.25 (wrong-gateway)",
+            "The command part differs from that in the golden line at 1 places"
+          ],
+          "line": 93
+        }
+      ]
+    ]
+  },
+  "building distribution switch": {
+    "missing-device": "this"
+  },
+  "building access switch #1": {
+    "missing-device": "this"
+  },
+  "bldg05-sw01-04 building distribution switch": {
+    "extra-device": "this"
+  },
+  "bldg05-sw01-24 building access switch": {
+    "extra-device": "this"
+  }
+}

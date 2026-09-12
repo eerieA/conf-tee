@@ -1,0 +1,87 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site01-hub28 building router hsrp ~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name HOUS02-MECH2=DNET-USER
+!
+interface GigabitEthernet2/28
+ switchport trunk allowed vlan add 3737
+!
+interface vlan3737
+  description HOUS02-MECH2=DNET-USER
+  mtu 9216
+  ip vrf forwarding DNET-USER
+  ip address 10.45.56.189 255.255.255.192
+  standby ip 10.45.56.190
+  standby preempt
+  standby priority 105
+  standby authentication md5 key-string 0 ewhr324jflewfjosdfjofds
+  no shutdown
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ site02-hub28 building router hsrp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name HOUS02-MECH2=DNET-USER
+!
+interface GigabitEthernet2/28
+ switchport trunk allowed vlan add 3737
+!
+interface vlan3737
+  description HOUS02-MECH2=DNET-USER
+  mtu 9216
+  ip vrf forwarding DNET-USER
+  ip address 10.45.56.188 255.255.255.192
+  standby ip 10.45.56.190
+  standby preempt
+  standby priority 100
+  standby authentication md5 key-string 0 ewhr324jflewfjosdfjofds
+  no shutdown
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-04 building distribution switch ~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name HOUS02-MECH2=DNET-USER
+!
+interface GigabitEthernet1/1/4
+ switchport trunk allowed vlan add 3737
+!
+interface GigabitEthernet2/1/4
+ switchport trunk allowed vlan add 3737
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 3737
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bldg05-sw01-24 building access switch #1 ~~~~~~~~~~~~~~~~~~~~~~~
+
+! ########### USER PREFIX START ########### 
+!
+vlan 3737
+  name HOUS02-MECH2=DNET-USER
+!
+interface Port-channel1
+ switchport trunk allowed vlan add 3737
+!
+!copy running startup
+!
+! ########### USER PREFIX END ############# 
+
+
