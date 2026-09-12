@@ -1,5 +1,8 @@
 # Architecture
 
+Describes the current (v2) design, written Apr 2024 – Jul 2024. For the
+predecessor it replaced, see [v1-retrospective.md](./v1-retrospective.md).
+
 Text version of the class diagram (replaces `resources/class_diagram.jpg`, which
 predates the removal of the OpenAI structure extractor). Kept as text so it is
 diffable and can be updated alongside the code.
@@ -100,7 +103,7 @@ diffable and can be updated alongside the code.
   find(.) / union(.)        union-find over name prefixes
 ```
 
-> **Note — this branch is scheduled for deletion.**
+> **Note: this branch is scheduled for deletion.**
 > `ConstantsSingleton` + `DisjointSet` exist only to *infer* which variables
 > belong to the same subnet family, by matching shared name prefixes
 > (`Vrfglue_prefix`, `Vrfglue_prefix_1st_IP`, `Vrfglue_prefix_netmask` -> one
@@ -114,10 +117,8 @@ diffable and can be updated alongside the code.
 > | arithmetic kind | `section_comparer.py:55` | membership in `IPV4_VARIABLES` / `INT_VARIABLES` |
 > | consistency scope | `diff_helpers.py:22` | computed by *subtraction* from the regex dict |
 >
-> Declaring families, roles and scopes explicitly in a schema file makes all of
-> the above data rather than inference, and removes the requirement that a user
-> *name* their variables in a magic convention to get correct behavior. See
-> the schema work superseding `utils/constants.py`.
+> Declaring families, roles and scopes in a schema file replaces this inference.
+> See [repurposing-plan.md](./repurposing-plan.md) §2.
 
 ## Notes
 

@@ -1,7 +1,21 @@
-# Configuration Comparison Project
+# conf-tee
 
 ## Overview
 This tool is designed to compare generated configuration file against a maually defined standard format. Differences between the two files are aggregated into a table for human review, and into a JSON report for integration use.
+
+## Project history
+
+This tool was built for a university network operations simulation project and has since been
+retired; it is published here in a generalized, sanitized form.
+
+| Period | What happened |
+|---|---|
+| Aug 2023 – Dec 2023 | **v1** written by a previous student developer. Not included in this repository; see [docs/v1-retrospective.md](./docs/v1-retrospective.md) for its architecture and the lessons taken from it. |
+| Apr 2024 – Jul 2024 | **v2**, the code in this repository: a full rewrite into the layered design described in [docs/architecture.md](./docs/architecture.md). |
+| (undated) | Retired from production use; no longer deployed anywhere. |
+| Sep 2026 | Repurposing for public release begins: predecessor code removed, organization- and person-identifying sample data replaced, regression tests added. See [docs/repurposing-plan.md](./docs/repurposing-plan.md). |
+
+Both the version number (0.1.5) and the requirements list below date from that original development. The initial commit is when this repository was created for publication; it says nothing about how long the tool took to write.
 
 ## Table of Contents
 

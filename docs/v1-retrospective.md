@@ -1,12 +1,14 @@
-# v1 Retrospective — Why the Predecessor Was Rewritten
+# v1 retrospective: why the predecessor was rewritten
+
+**Timeline:** v1 was developed roughly Aug 2023 – Dec 2023. The rewrite (v2, the
+code in this repository) followed in Apr 2024 – Jul 2024.
 
 **Status:** The v1 source code has been removed from this repository. This document
 preserves its architecture and the engineering lessons learned from it.
 
 **Why the code is gone:** v1 was written by a previous developer on the project. This
-document extracts *what was learned* — architecture, failure modes, anti-patterns —
-without republishing someone else's work under this repository's license. The analysis
-below is the lasting value; the code was not.
+document extracts what was learned (architecture, failure modes, anti-patterns)
+without republishing someone else's work under this repository's license.
 
 **Scope note:** v1 was an early prototype built under school-project time pressure, and
 it did establish the core insight this tool still rests on: that a "golden" config is a
@@ -40,8 +42,8 @@ Five modules, no classes, with state shared through module-level globals.
                 word_bracket_type, Vlan_name,
                 User_prefix, variable_dict
 
-  file_prepare.py      — interactive file creation (unused by main flow)
-  change_bracket.py    — one-off corpus migration script
+  file_prepare.py       interactive file creation (unused by main flow)
+  change_bracket.py     one-off corpus migration script
 ```
 
 ### Data flow
@@ -84,8 +86,8 @@ print()
 ### 2.1 The diff was consumed as text, not as data
 
 `compare_paragraphs()` joined difflib's output into one string, and every downstream
-stage re-parsed that string. Structural facts difflib already knew — which line is an
-insert, which a delete, the opcode spans — were thrown away and then guessed back via
+stage re-parsed that string. Structural facts difflib already knew (which line is an
+insert, which a delete, the opcode spans) were thrown away and then guessed back via
 `count_leading_nonletters()`, `next_lines_start_with()`, and `is_end_of_paragraph()`.
 
 Any config line whose *content* resembled diff syntax could be misread as a diff marker.
@@ -99,16 +101,16 @@ happens to begin with `-`".
 ### 2.2 Output was built by string mutation, not by rendering a model
 
 The final output in `start_config_compare.py` was assembled by chained `.replace()`
-calls, including `.replace("next", "\n")` — which corrupts any config containing the
-literal word "next" — and `.replace("-", "", 1)`, which deletes the first hyphen in the
+calls, including `.replace("next", "\n")`, which corrupts any config containing the
+literal word "next", and `.replace("-", "", 1)`, which deletes the first hyphen in the
 entire report regardless of what it belonged to.
 
 Because presentation and analysis were fused, there was exactly one possible output
 (colored text for a terminal). Producing JSON for another system meant re-deriving
 everything from scratch.
 
-> **v2's fix:** `GenSummary.generate_reports()` returns three views — summary tuple,
-> DataFrame, JSON — from one computed result. Analysis never touches formatting.
+> **v2's fix:** `GenSummary.generate_reports()` returns three views (summary tuple,
+> DataFrame, JSON) from one computed result. Analysis never touches formatting.
 
 ### 2.3 Correctness depended on global mutable state
 
@@ -146,7 +148,7 @@ if word_bracket_type == "Vlan{Vlan_ID}":
     word = word[4:]           # strip literal "Vlan" by index
 ```
 
-Each is a rule about *extracting a value from surrounding literal text* — a real and
+Each is a rule about extracting a value from surrounding literal text, a real and
 recurring need. But encoding it as equality against one exact template string means the
 rule fires only for that byte-for-byte context. Writing `64000: {RD_ID}` with a space, or
 `VRF_{VRF_name}_Subnet` (singular), silently disables the rule with no error. `word[4:]`
@@ -161,7 +163,7 @@ if word_bracket_type == '{user_prefix_netmask}':
     return False
 ```
 
-An unimplemented feature reported as a *validation failure* — the tool actively lied
+An unimplemented feature reported as a *validation failure*: the tool actively lied
 about the user's config.
 
 > **v2's fix:** `LineAnalyzer` extracts variables positionally against the template, and
@@ -177,8 +179,8 @@ for line_number, line in enumerate(all_lines):
 ```
 
 Unconditional output from library code, on every run, for any input over 11 lines.
-A small thing, but a reliable sign that the module had no test harness — with one, this
-would have shown up immediately as noise in captured output.
+A reliable sign that the module had no test harness: with one, this would have shown
+up as noise in captured output.
 
 ---
 
@@ -187,7 +189,7 @@ would have shown up immediately as noise in captured output.
 | Problem | Effect |
 |---|---|
 | **1121-line module, 400+ line functions** | `process_edited_lines` and `process_line` took 8–10 positional arguments and mixed parsing, validation, and coloring in one body. No unit could be tested or changed alone. |
-| **No block/section awareness** | v1 diffed whole files as flat line sequences. One inserted section near the top shifted every subsequent line, so difflib's alignment cascaded and the rest of the report became noise. Multi-device configs — the actual use case — degraded worst. |
+| **No block/section awareness** | v1 diffed whole files as flat line sequences. One inserted section near the top shifted every subsequent line, so difflib's alignment cascaded and the rest of the report became noise. Multi-device configs, the actual use case, degraded worst. |
 | **Flat global namespace for variables** | One `variable_dict` for the whole file meant no way to express "consistent within this section" vs "consistent across the file". The `Vlan_name`-as-global hack was a symptom: it could only ever express *one* file-global consistency rule, hardcoded for one variable. |
 | **Terminal output as the only interface** | No importable API. Integration with another system would require re-implementing everything. |
 | **Regex dict duplicated per-variable** | The same 100-character IPv4 regex was pasted ~15 times. A fix to one copy left the others wrong. |
@@ -201,42 +203,42 @@ would have shown up immediately as noise in captured output.
 
 ## 4. Anti-patterns catalogue
 
-Each of these is worth recognizing in future code, independent of this project:
+Worth recognizing in future code, independent of this project:
 
-1. **Stringly-typed pipeline** — passing rich structure between stages as formatted text,
+1. **Stringly-typed pipeline**: passing rich structure between stages as formatted text,
    forcing each stage to re-parse. Data should stay structured until the final render.
-2. **Parse–validate–present fusion** — one function doing all three yields exactly one
+2. **Parse-validate-present fusion**: one function doing all three yields exactly one
    output format and no testable seam.
-3. **Globals as implicit parameters** — `global word_bracket_type` reassigned inside
+3. **Globals as implicit parameters**: `global word_bracket_type` reassigned inside
    nested loops makes call order part of the contract.
-4. **A variable serving as both sentinel and storage** — `Vlan_name` as `None`-flag *and*
+4. **A variable serving as both sentinel and storage**: `Vlan_name` as `None`-flag *and*
    remembered value conflates "have I seen this?" with "what was it?".
-5. **Dispatch on exact literal strings** — `if template == "Vlan{Vlan_ID}"` makes
+5. **Dispatch on exact literal strings**: `if template == "Vlan{Vlan_ID}"` makes
    behavior depend on incidental formatting; whitespace changes silently disable rules.
-6. **Returning a failure value for unimplemented logic** — `return False` with a TODO
+6. **Returning a failure value for unimplemented logic**: `return False` with a TODO
    comment reports a *wrong answer* rather than an honest "not supported".
-7. **Magic index slicing** — `word[4:]` to strip a known prefix, with the length inlined
+7. **Magic index slicing**: `word[4:]` to strip a known prefix, with the length inlined
    far from its justification.
-8. **Output built by chained `.replace()`** — especially `.replace("next", "\n")`, where
+8. **Output built by chained `.replace()`**: especially `.replace("next", "\n")`, where
    a sentinel collides with real content.
-9. **Copy-pasted constants** — the same IPv4 regex duplicated 15 times.
-10. **Debug prints left in loops** — a proxy signal for "this code has no test harness".
+9. **Copy-pasted constants**: the same IPv4 regex duplicated 15 times.
+10. **Debug prints left in loops**: a proxy signal for "this code has no test harness".
 
 ---
 
 ## 5. What v1 got right, and what v2 kept
 
-Worth stating plainly, because the rewrite inherited more than it replaced:
+The rewrite inherited more than it replaced:
 
-- **The core insight** — treating the golden config as a *template with typed holes*, and
+- **The core insight**: treating the golden config as a *template with typed holes*, and
   the task as binding holes to real values then validating them. That framing is the
   whole product, and it came from v1.
-- **Regex-per-variable-type** — the `WORD_TYPE_REGEXES` dict was carried into v2 nearly
+- **Regex-per-variable-type**: the `WORD_TYPE_REGEXES` dict was carried into v2 nearly
   intact, and is documented there as "directly copied from version 1".
-- **Value-consistency checking** — v1's `Vlan_name` hack was the wrong *mechanism*, but
+- **Value-consistency checking**: v1's `Vlan_name` hack was the wrong *mechanism*, but
   the requirement it served (a variable keeps one value throughout) was real, and v2
   implements it properly with explicit scopes.
-- **Human-readable colored output** — v1 understood the audience was a human reviewer.
+- **Human-readable colored output**: v1 understood the audience was a human reviewer.
   v2 kept that and added machine-readable JSON alongside it.
 
 ---
