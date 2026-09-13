@@ -82,8 +82,9 @@ v1 got right that v2 kept.
 Removed `_openai_prerequisite`, `_make_prompt`, `_call_openai_api`,
 `_parse_response`, `openai_extract_struct`, plus three helpers used only by that
 path. `_extract_structs()` lost its `struct_parser` argument. Dropped 17
-transitive dependencies, deleted `.env.json` files. Also re-saved
-`requirements.txt` as UTF-8: it was UTF-16, which breaks `pip install -r`.
+transitive dependencies, deleted `.env.json` files. Also attempted to re-save
+`requirements.txt` as UTF-8, since UTF-16 breaks `pip install -r`. That did not
+take: the file was committed still UTF-16LE, and was corrected during Phase 2.
 
 **Sanitization: organization and person identifiers removed.**
 Two rounds, ~1,500 occurrences across the corpus:
@@ -247,6 +248,30 @@ section, and absent pools must mean "do not check", not "check against a
 built-in default". Note also that `INFRA_VLAN_POOL` / `USER_VLAN_POOL` are
 computed at import time (`diff_helpers.py:39`), so this is module-level state a
 threaded schema object has to displace.
+
+**Environment faults found while setting the suite up to run.** None are schema
+work; they were blocking anyone from running the tests at all, so they were fixed
+first:
+
+- `requirements.txt` was still UTF-16LE despite Phase 0 recording it as re-saved
+  UTF-8, which makes `pip install -r` fail outright.
+- The test suite only ran under `python -m pytest`, which puts the working
+  directory on `sys.path`, and failed under a bare `pytest`, which does not. The
+  package is not installed during development, so `import conftee` had nothing to
+  resolve against. Fixed with `pythonpath = ["."]` in a new
+  `[tool.pytest.ini_options]` section. Worth noting because the two invocations
+  look interchangeable and the failure blames the test module rather than the
+  path.
+- Every dependency was an exact `==` pin, which made
+  `pip install -r requirements.txt` fail on Python 3.14: `pandas==2.1.4` has no
+  wheel for it, so pip fell back to compiling from source and the Cython build
+  failed, aborting the whole file. Relaxed to lower bounds in both
+  `requirements.txt` and `pyproject.toml`, and verified by building a fresh venv
+  and running the suite against the newest resolve (pandas 3.0.5, numpy 2.5.3,
+  colored 2.3.2). The pandas notes were also reworded, since
+  "does not strictly need pandas" read as "not imported" when the intended
+  meaning was "replaceable with a hand-rolled record structure". See the
+  Environment section of `README.md`, which owns that explanation.
 
 `links` (cross-variable equality conditioned on section) was cut from v1,
 because it existed for a single `LNK_RELATIONS` entry. Revisit later as a general

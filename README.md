@@ -28,7 +28,8 @@ Both the version number (0.1.5) and the requirements list below date from that o
   - [4 Result](#4-result)
 - [How to Run the Tool (Integration)](#how-to-run-the-tool-integration)
 - [Addendum A (For devs): Extra documentation](#addendum-a-documentations-for-devs)
-- [Addendum B (For devs): Dev tools](#addendum-b-dev-tools-notes)
+- [Addendum B (For devs): Running the tests](#addendum-b-running-the-tests)
+- [Addendum C (For devs): Dev tools](#addendum-c-dev-tools-notes)
 
 ## Client requirements:
 1. Compare user-defined configurations against a standard format (golden config).
@@ -46,9 +47,20 @@ Both the version number (0.1.5) and the requirements list below date from that o
 4. A readable error report for human review.
 
 ## Environment
-Python 3.9.0 <br>
-Python virtualenv: please use `pip install -r requirements.txt` <br>
-- Note: Technically this project can be done without Pandas. It currently uses Pandas for code readability, easier program structure designing and some visualization. Feel free to refactor Pandas out in the future.
+Python 3.9 or newer. From the repository root:
+
+```
+python -m venv .venv
+.venv\Scripts\activate.bat          # Windows cmd; use activate.ps1 in PowerShell,
+                                     # or source .venv/bin/activate on Linux/macOS
+python -m pip install -r requirements.txt
+```
+
+Dependencies are declared as lower bounds rather than exact pins, so the install
+picks wheels built for whichever Python you are on. Pinning exact versions ties
+the project to the interpreter versions current when those versions shipped.
+
+- Note: Pandas is a real dependency of the current code: `differ_o`, `section_comparer`, `gen_summary` and `config_compare` all build and read DataFrames, so installing without it will not work. But that is a design choice, not a requirement of the problem. The DataFrame is used as the intermediate structure passed between those modules, and for readable output such as `out.csv`. What it is *not* used for is anything pandas is actually good at: there are no joins, group-bys or vectorized numerics in the pipeline, and every `.apply` is a row-wise Python lambda, which is a loop by another name. Any similarly shaped record structure plus hand-written access logic would produce identical results. Swapping it out is a contained refactor of those four modules, not a redesign.
 
 ## How to Run the Tool (Local Standalone)
 
@@ -191,7 +203,46 @@ See [docs/v1-retrospective.md](./docs/v1-retrospective.md) for an analysis of th
 predecessor implementation and the reasons for the rewrite.
 See [docs/architecture.md](./docs/architecture.md) for the class/pipeline diagram.
 
-#### Addendum B: Dev tools notes
+#### Addendum B: Running the tests
+
+From a virtual environment with the project's dependencies installed (see
+[Environment](#environment)), add pytest and run it:
+
+```
+python -m pip install pytest
+python -m pytest
+```
+
+Prefer `python -m pip` and `python -m pytest` over bare `pip` and `pytest`. The
+`-m` form resolves through the interpreter you are actually running, so it cannot
+silently act on a different Python than the one you intend.
+
+The package does not need to be installed first. `pyproject.toml` sets
+`pythonpath = ["."]`, which puts the repository root on `sys.path` so
+`import conftee` resolves during development.
+
+`tests/test_regression.py` runs all 63 golden/user config pairs through the full
+pipeline and compares the result against recorded summary counts and report
+hashes in `tests/fixtures/baseline.json`. The baseline was generated from the
+engine's own output, so these tests assert that behavior has not *changed*, not
+that it is correct. A failure here means something shifted; investigate the
+change rather than regenerating the baseline.
+
+The same file also holds `test_no_identifying_strings`, which scans the sample
+configs and `docs/` for identifiers that were removed when this repository was
+published. It stores them as salted hashes rather than plaintext, so the check
+can run without the names being present.
+
+Useful variations:
+
+```
+python -m pytest tests/test_regression.py   # one file
+python -m pytest -k identifying            # tests matching a name
+python -m pytest -x                        # stop at the first failure
+python -m pytest -q                        # one line per file instead of per test
+```
+
+#### Addendum C: Dev tools notes
 There are some independent tool scripts in ./dev_tools folder, for one past dev's personal use. So delete them as needed.
 
 1. print_regexes_from_client.py: Read a txt file containing regexes from the client and print them as a prettified Python dict, for pasting into the conftee\utils\constants.py. Just to save some manual formatting time.

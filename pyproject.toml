@@ -11,17 +11,23 @@ license = "MIT"
 
 # When using pip to install, this dependency list will be read
 [tool.poetry.dependencies]
-colored="1.4.4"
-Mako="1.3.3"
-Jinja2="3.1.2"
-# Dependencies for pandas, but this project theoretically does not stricly need pandas
-MarkupSafe="2.1.3"
-numpy="1.26.3"
-pandas="2.1.4"
-python-dateutil="2.8.2"
-pytz="2023.3.post1"
-six="1.16.0"
-tzdata="2023.4"
+colored=">=1.4.4"
+Mako=">=1.3.3"
+Jinja2=">=3.1.2"
+# Imported by differ_o, section_comparer, gen_summary and config_compare, so it
+# is required by the current code. See requirements.txt for why it is a lower
+# bound rather than an exact pin, and why the dependency is replaceable in
+# principle.
+pandas=">=2.2"
+
+[tool.pytest.ini_options]
+# The package is not installed into the environment during development, so the
+# repository root has to be on sys.path for `import conftee` to resolve. Running
+# `python -m pytest` happens to add it and a bare `pytest` does not, which makes
+# the suite work or fail depending on how it was invoked. Setting it here makes
+# both work.
+pythonpath = ["."]
+testpaths = ["tests"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -29,6 +35,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dev-dependencies]
 poetry = "^1.0.0"
+pytest = "^8.0"
 
 # This section will not be read since currently built through poetry
 # But keeping it in case we don't use poetry in the future
