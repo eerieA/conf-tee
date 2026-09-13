@@ -249,6 +249,18 @@ built-in default". Note also that `INFRA_VLAN_POOL` / `USER_VLAN_POOL` are
 computed at import time (`diff_helpers.py:39`), so this is module-level state a
 threaded schema object has to displace.
 
+**A latent bug the transcription surfaced.** Preserved as-is in the schema,
+because the equivalence test's job is to prove the schema matches today's
+behavior, bugs included. Fixing it is a separate, deliberate change:
+
+- `Vlan_ID_vpnglue` is absent from `INT_VARIABLES` while its three siblings
+  (`Vlan_ID_fwglue`, `Vlan_ID_vrfglue`, `Vlan_ID_user`) are present, despite
+  sharing their regex. Writing `{{Vlan_ID_vpnglue}+1}` therefore raises
+  `ValueError` from `_evaluate_expression` rather than evaluating. No corpus file
+  uses a VLAN in an expression, so nothing catches it. The schema encodes this as
+  a distinct `vlan_id_no_arithmetic` type, which at least makes the anomaly
+  visible rather than hiding it in a membership list.
+
 **Environment faults found while setting the suite up to run.** None are schema
 work; they were blocking anyone from running the tests at all, so they were fixed
 first:
@@ -268,7 +280,8 @@ first:
   failed, aborting the whole file. Relaxed to lower bounds in both
   `requirements.txt` and `pyproject.toml`, and verified by building a fresh venv
   and running the suite against the newest resolve (pandas 3.0.5, numpy 2.5.3,
-  colored 2.3.2). The pandas notes were also reworded, since
+  colored 2.3.2), with the full suite passing. The pandas notes were also
+  reworded, since
   "does not strictly need pandas" read as "not imported" when the intended
   meaning was "replaceable with a hand-rolled record structure". See the
   Environment section of `README.md`, which owns that explanation.
@@ -287,15 +300,21 @@ first three steps add code without changing what runs, so a mistake in the
 56-regex transcription is caught by a direct comparison rather than debugged
 later through a shifted report.
 
-- [ ] `schema.py`: parse and validate YAML into internal structures, with clear
-      errors for malformed schemas.
-- [ ] `schemas/cisco-campus.yaml`: `constants.py` expressed in the new format.
-      (Renamed from the original org-specific name.)
-- [ ] Equivalence test: assert the loaded schema reproduces today's constants
-      exactly, before anything consumes it. Same regex dict, same `IPV4_*` and
-      `INT_VARIABLES` membership, same computed `VAR_CONS_FILE`, same clusters as
-      `ConstantsSingleton.get_clusters_dict()`. This is the gate for the steps
-      below.
+- [x] `schema.py`: parse and validate YAML into internal structures, with clear
+      errors for malformed schemas. Cross-references (variable to type, group
+      member to variable, variable to pool) are resolved at load time, so a
+      schema that loads is known to be internally consistent.
+- [x] `schemas/cisco-campus.yaml`: `constants.py` expressed in the new format.
+      (Renamed from the original org-specific name.) Generated from the constants
+      rather than hand-transcribed. 50 variables collapse to 22 named types,
+      since most of the regex dict was the same IPv4 pattern repeated.
+- [x] Equivalence test: `tests/test_schema_equivalence.py`, 61 tests, asserting
+      the loaded schema reproduces today's constants exactly. Regex per variable,
+      `IPV4_*` / `INT_VARIABLES` membership in both directions, computed
+      `VAR_CONS_*` scopes, `ConstantsSingleton` clusters, pool assignments, and
+      the syntax regexes hardcoded across `extract.py`, `section.py`,
+      `line_analyzer.py` and `section_comparer.py`. Verified by mutation: seven
+      classes of deliberate schema corruption each fail it.
 - [ ] Thread a schema object through `LineAnalyzer`, `SectionComparer`,
       `diff_helpers` in place of module-level constant imports. Includes the
       import-time pool computation at `diff_helpers.py:39`.
@@ -318,7 +337,10 @@ later through a shifted report.
 - [ ] Reorganize the corpus: a few representative pairs in `examples/` as
       user-facing documentation, the rest to `tests/fixtures/corpus/`.
       *(Deferred from Phase 0 to avoid moving files twice.)*
-- [ ] Verify packaging: confirm corpus files are excluded from the built wheel.
+- [ ] Verify packaging: confirm corpus files are excluded from the built wheel,
+      and that `conftee/schemas/*.yaml` is *included*. Poetry's
+      `packages = [{ include = "conftee" }]` takes `*.py` by default, so the
+      bundled schema needs an explicit include rule or it ships missing.
 - [ ] Unpin over-specific dependency versions (currently exact `==` pins from a
       Python 3.9 era).
 - [ ] Update `docs/architecture.md` once `constants_singleton.py` is gone.

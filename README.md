@@ -221,6 +221,8 @@ The package does not need to be installed first. `pyproject.toml` sets
 `pythonpath = ["."]`, which puts the repository root on `sys.path` so
 `import conftee` resolves during development.
 
+There are two suites, and they answer different questions.
+
 `tests/test_regression.py` runs all 63 golden/user config pairs through the full
 pipeline and compares the result against recorded summary counts and report
 hashes in `tests/fixtures/baseline.json`. The baseline was generated from the
@@ -233,11 +235,18 @@ configs and `docs/` for identifiers that were removed when this repository was
 published. It stores them as salted hashes rather than plaintext, so the check
 can run without the names being present.
 
+`tests/test_schema_equivalence.py` covers the schema work in progress. It pins
+`conftee/schemas/cisco-campus.yaml` against the hardcoded constants it was
+transcribed from, so a mistake in the schema fails with the name of the offending
+variable instead of showing up later as a changed report. It is scaffolding: once
+the engine reads the schema and the constants modules are gone, this file goes
+with them. See [docs/repurposing-plan.md](./docs/repurposing-plan.md).
+
 Useful variations:
 
 ```
-python -m pytest tests/test_regression.py   # one file
-python -m pytest -k identifying            # tests matching a name
+python -m pytest tests/test_regression.py   # one suite
+python -m pytest -k schema                 # tests matching a name
 python -m pytest -x                        # stop at the first failure
 python -m pytest -q                        # one line per file instead of per test
 ```

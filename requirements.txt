@@ -6,6 +6,8 @@ Mako>=1.3.3
 # Only the commented-out html renderer in gen_summary.py imports Jinja2. Kept so
 # that code can be revived without a dependency hunt.
 Jinja2>=3.1.2
+# Schema files are hand-edited, so the format needs comments
+PyYAML>=6.0.1
 
 # The current code genuinely imports pandas (differ_o, section_comparer,
 # gen_summary, config_compare), so it cannot simply be dropped from this file.
