@@ -341,8 +341,9 @@ later through a shifted report.
       and that `conftee/schemas/*.yaml` is *included*. Poetry's
       `packages = [{ include = "conftee" }]` takes `*.py` by default, so the
       bundled schema needs an explicit include rule or it ships missing.
-- [ ] Unpin over-specific dependency versions (currently exact `==` pins from a
-      Python 3.9 era).
+- [x] Unpin over-specific dependency versions. Done ahead of schedule during
+      Phase 2, because the exact `==` pins were blocking the test suite from
+      installing at all; see the environment faults noted there.
 - [ ] Update `docs/architecture.md` once `constants_singleton.py` is gone.
 
 ### Phase 4: optional polish
