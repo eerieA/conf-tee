@@ -21,3 +21,6 @@ config_difference_compare/html_output/
 
 # Test caches
 .pytest_cache/
+
+# graft's local graph cache
+/graft/
