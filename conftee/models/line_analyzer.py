@@ -3,7 +3,6 @@ from typing import Union
 from difflib import SequenceMatcher
 
 from .section import SECTION_TITLE_LINE_REGEX
-from ..utils import schema as schema_module
 from ..utils.constants import GENERAL_IPV4_REGEX
 
 VARIABLE_REGEX = r"\{[\-\#\w]+\}"
@@ -13,17 +12,15 @@ INFRQ_CHAR_FOR_VARIABLE, INFRQ_CHAR_FOR_IPV4 = ";", ":"
 
 class LineAnalyzer:
 
-    def __init__(self, schema=None):
+    def __init__(self, schema):
         """
         Description:
             Instantiate. This class handles comparison at a signle (pair of) line level.
 
         Args:
-            schema (Schema, optional): The vocabulary to validate values against.
-                Defaults to the bundled cisco-campus schema while the engine is
-                being migrated off module-level constants; see utils/schema.default.
+            schema (Schema): The vocabulary to validate values against.
         """
-        self.schema = schema if schema is not None else schema_module.default()
+        self.schema = schema
         self.ipv4_variables = self.schema.variables_with_arithmetic("ipv4")
 
     def variable_is_value_match(self, variable: str, value: str) -> bool:

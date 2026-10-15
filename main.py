@@ -6,11 +6,13 @@ from conftee.models.extract import Extract
 from conftee.models.outline import Outline
 from conftee.models.gen_summary import GenSummary
 from conftee.utils.read_config import ReadConfig
+from conftee.utils import schema as schema_module
 
 success_color = fg("green")
 attention_color = fg("blue")
 reset_color = attr("reset")
 
+SCHEMA_PATH = "./conftee/schemas/cisco-campus.yaml"
 GOLDEN_DIR = "./golden_config_files/"
 USER_DIR = "./user_config_files/"
 # TEST_FILE_NAME = 'test_file_one_line_bad.txt'
@@ -59,11 +61,12 @@ def main():
     outlineData = (outlineGolden, outlineUser)
 
     # Calculate
-    comparer = ConfigCompare(extractData, outlineData)
+    schema = schema_module.load(SCHEMA_PATH)
+    comparer = ConfigCompare(extractData, outlineData, schema)
     comparer_results = comparer.calculate_diff(infra_prefixes=None)
 
     # Generate reports
-    summ_generator = GenSummary()
+    summ_generator = GenSummary(schema)
     summary, diff_result_df, json_report = summ_generator.generate_reports(
         outlineGolden,
         outlineUser,

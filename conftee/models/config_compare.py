@@ -4,7 +4,6 @@ from .differ_o import DifferO
 from .outline import Outline
 from .section_comparer import SectionComparer
 from ..utils import struct_helpers, diff_helpers
-from ..utils import schema as schema_module
 
 from ..utils.diff_helpers import (
     METype,
@@ -20,7 +19,7 @@ from ..utils.constants import BLOCK_TYPE_DEVICE, BLOCK_TYPE_SECTION
 
 class ConfigCompare:
 
-    def __init__(self, file_data, outline_data: list[Outline], schema=None):
+    def __init__(self, file_data, outline_data: list[Outline], schema):
         """
         Description:
             Instantiate. This class handles pre and post processing of diff checking. It is designed as the "main" class for outside modules and programs.
@@ -29,12 +28,10 @@ class ConfigCompare:
         Args:
             content_1 (list[str]): Input data 1. Ideally collected from the golden config file.
             content_2 (list[str]): Input data 2. Ideally collected from the user config JSON object.
-            schema (Schema, optional): The vocabulary the whole comparison runs against, passed
-                down to the SectionComparer and the diff helpers. Defaults to the bundled
-                cisco-campus schema while the engine is being migrated off module-level
-                constants; see utils/schema.default.
+            schema (Schema): The vocabulary the whole comparison runs against, passed down to
+                the SectionComparer and the diff helpers.
         """
-        self.schema = schema if schema is not None else schema_module.default()
+        self.schema = schema
         self.file_struct_1 = file_data[0]
         self.file_struct_2 = file_data[1]
         self.outline_1 = outline_data[0]

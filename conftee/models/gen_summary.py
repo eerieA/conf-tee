@@ -9,7 +9,6 @@ from ..utils.struct_helpers import _hrch_key_format
 from ..utils.diff_helpers import _lookup_correct_values, _value_is_wrong_sourced, _value_is_wrong_link
 
 from ..utils.constants import GENERAL_IPV4_REGEX
-from ..utils import schema as schema_module
 from ..models.section_comparer import (
     COL_LABEL_LINE_NUM_1,
     COL_LABEL_LINE_NUM_2,
@@ -75,13 +74,12 @@ def _is_missing_extra(row):
     is_line_2_empty = _line_is_empty(row[COL_LABEL_LINE_CNTT_2])
     return (_line_is_extra(row) and not is_line_2_empty) or (_line_is_missing(row) and not is_line_1_empty)
 
-def _make_line_report(row, correct_values: dict, variable_incons: dict, var_val_dict_full: dict, device_name: str, section_name: str, schema=None):
+def _make_line_report(row, correct_values: dict, variable_incons: dict, var_val_dict_full: dict, device_name: str, section_name: str, schema):
     """
     Description:
         Row data processing function applied to a result Dataframe in specific format.
         This is another load bearing function for json report generation besides the create_summary_json(.)
     """
-    schema = schema if schema is not None else schema_module.default()
     var_cons_section, _ = _consistency_scopes(schema)
 
     is_line_1_empty = _line_is_empty(row[COL_LABEL_LINE_CNTT_1])
@@ -125,7 +123,7 @@ def _make_line_report(row, correct_values: dict, variable_incons: dict, var_val_
         # value for a variable; so check format mismatches using vals[i], but check inconsistencies etc using val_i.
 
         # Look up correct values collected beforehand, so that various inner checks inside the if-blocks can use it at will
-        correct_val, consistency_type = _lookup_correct_values(var_i, correct_values, device_name, section_name, schema=schema)
+        correct_val, consistency_type = _lookup_correct_values(var_i, correct_values, schema, device_name=device_name, section_name=section_name)
         if la.variable_is_value_match(var_i, vals[i]):
             # Only check value source and consistency if it has correct format, because otherwise these would be meaningless
 
@@ -338,6 +336,17 @@ def _append_summ_to_df(diff_result_df, summary):
 
 class GenSummary:
 
+    def __init__(self, schema):
+        """
+        Description:
+            Instantiate. This class turns a ConfigCompare's results into the reports.
+
+        Args:
+            schema (Schema): The vocabulary the reports are written against. The same one
+                the comparison ran with, otherwise the reports and the diff disagree.
+        """
+        self.schema = schema
+
     def create_summary_dataframe(
         self,
         outline_1,
@@ -394,16 +403,13 @@ class GenSummary:
         variable_incons: dict[str, list],
         correct_values: dict[str, str],
         diff_result_df: DataFrame,
-        schema=None,
     ):
         value_mismatch_cnt = sum(value_mismatch_lines)
         struct_mismatch_cnt = len(struct_mismatches)
         value_incons_cnt = 0
 
-        schema = schema if schema is not None else schema_module.default()
-
         # Count variable inconsistency errors
-        la = LineAnalyzer(schema)
+        la = LineAnalyzer(self.schema)
         for var in variable_incons:
             for val_on_line in variable_incons[var]:
                 device_name, section_name = val_on_line[2], val_on_line[3]
@@ -411,7 +417,7 @@ class GenSummary:
                     # Same rule as in the create_summary_json(.):
                     # If a value has correct format, has correct source, but is not the same as the overall correct value, then count as inconsistent
                     is_wrong_sourced, _, _ = _value_is_wrong_sourced(var, val_on_line[0], correct_values, section_name)
-                    correct_val, _ = _lookup_correct_values(var, correct_values, device_name, section_name, schema=schema)
+                    correct_val, _ = _lookup_correct_values(var, correct_values, self.schema, device_name=device_name, section_name=section_name)
                     if not is_wrong_sourced and correct_val[0] != "{" and val_on_line[0] != correct_val:
                         value_incons_cnt += 1
 
@@ -444,7 +450,6 @@ class GenSummary:
         variable_incons: dict,
         var_val_dict_full: dict[str, list[list[Union[str, int]]]],
         diff_result_df: pandas.DataFrame,
-        schema=None,
     ):
         """
         Description:
@@ -530,7 +535,7 @@ class GenSummary:
                                 var_val_dict_full,
                                 device_merged,
                                 section_merged,
-                                schema,
+                                self.schema,
                             ),
                             axis=1,
                         )
@@ -573,7 +578,7 @@ class GenSummary:
                             var_val_dict_full,
                             device_merged,
                             section_merged,
-                            schema,
+                            self.schema,
                         ),
                         axis=1,
                     )

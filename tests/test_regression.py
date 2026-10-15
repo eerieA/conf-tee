@@ -19,10 +19,12 @@ from conftee.models.extract import Extract
 from conftee.models.gen_summary import GenSummary
 from conftee.models.outline import Outline
 from conftee.utils.read_config import ReadConfig
+from conftee.utils import schema as schema_module
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOLDEN_DIR = os.path.join(ROOT, "golden_config_files")
 USER_DIR = os.path.join(ROOT, "user_config_files")
+SCHEMA_PATH = os.path.join(ROOT, "conftee", "schemas", "cisco-campus.yaml")
 BASELINE = os.path.join(ROOT, "tests", "fixtures", "baseline.json")
 
 with open(BASELINE) as _f:
@@ -41,10 +43,11 @@ def run_pair(name):
         extract_golden, extract_user = Extract._extract_structs(golden, user)
         outline_golden = Outline(golden, extract_golden, True)
         outline_user = Outline(user, extract_user, False)
+        schema = schema_module.load(SCHEMA_PATH)
         results = ConfigCompare(
-            (extract_golden, extract_user), (outline_golden, outline_user)
+            (extract_golden, extract_user), (outline_golden, outline_user), schema
         ).calculate_diff(infra_prefixes=None)
-        return GenSummary().generate_reports(outline_golden, outline_user, results)
+        return GenSummary(schema).generate_reports(outline_golden, outline_user, results)
 
 
 @pytest.mark.parametrize("name", PAIR_NAMES)

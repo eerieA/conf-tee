@@ -308,12 +308,13 @@ entry point to `SectionComparer` to `LineAnalyzer`, as the constants do today.
 The modules are converted leaves-first, which is the opposite order, so that each
 one's dependents are still stable while it changes.
 
-During those steps the schema argument is optional, defaulting to the bundled
-`cisco-campus.yaml`, because a required argument would break all five
-construction sites at once and collapse them back into one. The default is
-scaffolding, and the step that makes the argument required is its removal
-trigger: while it exists there are two code paths, and leaving it in place would
-amount to the global this design rejected.
+During those steps the schema argument was optional, defaulting to the bundled
+`cisco-campus.yaml`, because a required argument would have broken all five
+construction sites at once and collapsed them back into one. The default was
+scaffolding, and the step that makes the argument required was its removal
+trigger: while it existed there were two code paths, and leaving it in place would
+have amounted to the global this design rejected. It has since been deleted, so
+omitting a schema is now a `TypeError` at every seam rather than a silent fallback.
 
 - [x] `schema.py`: parse and validate YAML into internal structures, with clear
       errors for malformed schemas. Cross-references (variable to type, group
@@ -336,14 +337,17 @@ amount to the global this design rejected.
       settled here before it is repeated.
 - [x] `SectionComparer`: arithmetic kind by type rather than by
       `IPV4_VARIABLES` / `INT_VARIABLES` membership (`:55`).
-- [ ] `diff_helpers`: the awkward one, and last for that reason. Beyond threading,
+- [x] `diff_helpers`: the awkward one, and last for that reason. Beyond threading,
       it has module-level state that no argument can displace: `VAR_CONS_FILE` is
       computed by subtraction at import time (`:22`-`:24`), and the VLAN pools at
       `:39`. The subtraction becomes `variables_with_scope`, which is a semantic
       change rather than a reroute, so it is isolated here with the other two
       modules already converted and passing.
-- [ ] Make the schema argument required and delete the default, once every caller
-      passes one explicitly.
+- [x] Make the schema argument required and delete the default, once every caller
+      passes one explicitly. `GenSummary` gained a constructor to hold the schema,
+      as `ConfigCompare` already did; `main.py` and the regression test now load
+      `cisco-campus.yaml` and pass it in, so the choice of vocabulary is made at the
+      entry point rather than defaulted to deep in the engine.
 - [ ] Move pools into the schema, with absent pools meaning "do not check".
       Retire `TEMP_UPLINK_PREFIXES`, `get_legit_ip_pools()`,
       `get_legit_vlan_pools()`.

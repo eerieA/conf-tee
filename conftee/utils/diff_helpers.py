@@ -8,7 +8,6 @@ from ..models.line_analyzer import LineAnalyzer
 from .helpers import ipv4_in_range, calc_ipv4_range, calc_ipv4_algebra, vlan_num_in_range, get_legit_ip_pools, get_legit_vlan_pools
 
 from .constants import IPV4_VARIABLES_INFRA, IPV4_VARIABLES_USER, SUBNET_CLUSTERS
-from . import schema as schema_module
 
 
 def _consistency_scopes(schema):
@@ -158,7 +157,7 @@ def _collect_var_val_dicts(
             var_val_dict_full[var] = new_vals_info
 
 
-def _collect_var_incons(variable_incons: dict[str, list], var_val_dict: dict[str, list], schema=None, **kwargs):
+def _collect_var_incons(variable_incons: dict[str, list], var_val_dict: dict[str, list], schema, **kwargs):
     """
     Description:
         Check and collect inconsistent values in a section or whole file.
@@ -166,9 +165,7 @@ def _collect_var_incons(variable_incons: dict[str, list], var_val_dict: dict[str
     Args:
         variable_incons (dict[str, list]): The dict storing inconsistent variables and their line numbers collected so far.
         var_val_dict (dict[str, list]): The dict storing variables and their values already collected from a section or whole config.
-        schema (Schema, optional): The vocabulary that declares each variable's consistency scope.
-            Defaults to the bundled cisco-campus schema while the engine is being migrated off
-            module-level constants; see utils/schema.default.
+        schema (Schema): The vocabulary that declares each variable's consistency scope.
         **kwargs: Either a dict with keys 'device_name' and  'section_name' for a sections, or none for a whole config.
 
     Returns:
@@ -188,7 +185,6 @@ def _collect_var_incons(variable_incons: dict[str, list], var_val_dict: dict[str
                 because this is whole file level detection and {RD_ID} has 2 values 34435, 3435.
     """
 
-    schema = schema if schema is not None else schema_module.default()
     var_cons_section, var_cons_file = _consistency_scopes(schema)
 
     if len(kwargs) == 2 and "device_name" in kwargs and "section_name" in kwargs:
@@ -249,12 +245,11 @@ def _variable_is_demarcation_ip(var:str):
     
     return dm_type
 
-def _determine_correct_values(var_val_dict_full: dict[str, list[list]], infra_prefixes: dict, schema=None) -> dict[str, str]:
+def _determine_correct_values(var_val_dict_full: dict[str, list[list]], infra_prefixes: dict, schema) -> dict[str, str]:
     """
     Description:
         Determine the correct values for variables. Currently just pick the most frequent ones. Might change later.
     """
-    schema = schema if schema is not None else schema_module.default()
     var_cons_section, _ = _consistency_scopes(schema)
     # One analyzer for the whole pass; it was previously rebuilt per value.
     la = LineAnalyzer(schema)
@@ -333,13 +328,12 @@ def _determine_correct_values(var_val_dict_full: dict[str, list[list]], infra_pr
     return result
 
 
-def _lookup_correct_values(var: str, correct_values: dict[str, str], device_name: str = "", section_name: str = "", schema=None):
+def _lookup_correct_values(var: str, correct_values: dict[str, str], schema, device_name: str = "", section_name: str = ""):
     """
     Description:
         Lookup the correct values for variables. This function is tightly coupled with _determine_correct_values(.)'s
         output. So if that changes, this has to be changed.
     """
-    schema = schema if schema is not None else schema_module.default()
     var_cons_section, _ = _consistency_scopes(schema)
 
     correct_val: str = ""
