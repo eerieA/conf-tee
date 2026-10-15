@@ -7,6 +7,7 @@ from conftee.models.outline import Outline
 from conftee.models.gen_summary import GenSummary
 from conftee.utils.read_config import ReadConfig
 from conftee.utils import schema as schema_module
+from conftee.sample_corpus import SAMPLE_INFRA_PREFIXES
 
 success_color = fg("green")
 attention_color = fg("blue")
@@ -63,7 +64,7 @@ def main():
     # Calculate
     schema = schema_module.load(SCHEMA_PATH)
     comparer = ConfigCompare(extractData, outlineData, schema)
-    comparer_results = comparer.calculate_diff(infra_prefixes=None)
+    comparer_results = comparer.calculate_diff(infra_prefixes=SAMPLE_INFRA_PREFIXES)
 
     # Generate reports
     summ_generator = GenSummary(schema)

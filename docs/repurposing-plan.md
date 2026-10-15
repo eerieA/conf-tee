@@ -348,13 +348,36 @@ omitting a schema is now a `TypeError` at every seam rather than a silent fallba
       as `ConfigCompare` already did; `main.py` and the regression test now load
       `cisco-campus.yaml` and pass it in, so the choice of vocabulary is made at the
       entry point rather than defaulted to deep in the engine.
-- [ ] Move pools into the schema, with absent pools meaning "do not check".
-      Retire `TEMP_UPLINK_PREFIXES`, `get_legit_ip_pools()`,
-      `get_legit_vlan_pools()`.
+- [x] Move pools into the schema, with absent pools meaning "do not check".
+      Retired `get_legit_ip_pools()` and `get_legit_vlan_pools()`, whose ranges
+      now live as test data in the equivalence test. `_value_is_in_pool` reads
+      `pool_for` and lost its section-conditional VLAN branch: that branch chose
+      between two pools holding the identical range, so it could not change a
+      verdict, and expressing it would have meant a per-section pool construct
+      built for a distinction nothing makes. `TEMP_UPLINK_PREFIXES` was not pool
+      data at all, so it moved rather than retired: it supplies correct values for
+      four infra prefix variables and describes the sample corpus, so it now lives
+      in `conftee/sample_corpus.py` and both entry points pass it explicitly. The
+      silent fallback is gone, matching the schema argument above.
+- [ ] `_value_is_wrong_sourced`: subnet membership from `schema.groups` rather than
+      `ConstantsSingleton` clusters and `SUBNET_CLUSTERS` (`:439`-`:443`), and
+      `schema.is_netmask` rather than the `"netmask" in var` substring test. This
+      is the prerequisite the list previously omitted: the function is the last
+      reader of `ConstantsSingleton`, so the deletion below cannot happen before
+      it. Like the scope lists, the clusters assertion in the equivalence test has
+      to become inline data at the same time, or it would assert the schema
+      against itself.
 - [ ] Delete `models/constants_singleton.py` (`ConstantsSingleton`, `DisjointSet`,
       `determine_cluster`) and the scattered string-inference tests.
 - [ ] Delete `utils/constants.api.py` and `utils/constants.desired.py`, which
       have no importer.
+- [ ] Decide what remains of `utils/constants.py`. It is not retired by the items
+      above: `GENERAL_IPV4_REGEX`, `GENERAL_CIDR_MASK_REGEX` and `BLOCK_TYPE_*`
+      are still read by `helpers.py`, `extract.py`, `outline.py`,
+      `struct_helpers.py`, `config_compare.py`, `line_analyzer.py` and
+      `gen_summary.py`. These are syntax-level and structural constants rather
+      than vocabulary, so keeping them is defensible, but the file should say so
+      once `IPV4_VARIABLES_*` and the rest of the vocabulary leave it.
 - [ ] Verify all 129 tests still pass. Unchanged reports prove the migration was
       faithful.
 
@@ -367,10 +390,17 @@ omitting a schema is now a `TypeError` at every seam rather than a silent fallba
 - [ ] Reorganize the corpus: a few representative pairs in `examples/` as
       user-facing documentation, the rest to `tests/fixtures/corpus/`.
       *(Deferred from Phase 0 to avoid moving files twice.)*
+      Move `conftee/sample_corpus.py` with it. The prefixes it holds describe the
+      sample configs, not the engine, and they sit in the package today only
+      because `main.py` reads them at run time. Left there for now so this
+      reorganization does not have to undo an import into `tests/`.
 - [ ] Verify packaging: confirm corpus files are excluded from the built wheel,
       and that `conftee/schemas/*.yaml` is *included*. Poetry's
       `packages = [{ include = "conftee" }]` takes `*.py` by default, so the
       bundled schema needs an explicit include rule or it ships missing.
+      `sample_corpus.py` is a `*.py` file inside the package, so it ships by
+      default and would put one network's addresses in every install. It needs
+      excluding, or to have moved out of `conftee/` by then.
 - [x] Unpin over-specific dependency versions. Done ahead of schedule during
       Phase 2, because the exact `==` pins were blocking the test suite from
       installing at all; see the environment faults noted there.

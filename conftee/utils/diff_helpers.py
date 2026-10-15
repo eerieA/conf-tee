@@ -5,9 +5,9 @@ from collections import Counter
 
 from ..models.constants_singleton import ConstantsSingleton
 from ..models.line_analyzer import LineAnalyzer
-from .helpers import ipv4_in_range, calc_ipv4_range, calc_ipv4_algebra, vlan_num_in_range, get_legit_ip_pools, get_legit_vlan_pools
+from .helpers import ipv4_in_range, calc_ipv4_range, calc_ipv4_algebra, vlan_num_in_range
 
-from .constants import IPV4_VARIABLES_INFRA, IPV4_VARIABLES_USER, SUBNET_CLUSTERS
+from .constants import SUBNET_CLUSTERS
 
 
 def _consistency_scopes(schema):
@@ -26,15 +26,6 @@ def _consistency_scopes(schema):
 LNK_RELATIONS = {
   'GW-FW_outside_IP': {'USER PREFIX': "FWGLUE_Prefix_1st_IP", 'VRF': 'FWGLUE_Prefix_1st_IP',
                        'WIRELESS PREFIX': "FWGLUE_Prefix_1st_IP"}
-}
-# Note: This dict is IP prefixes for standalone usage, for integration tests equivalent info should be read from API responses
-TEMP_UPLINK_PREFIXES = {
-    # In integration test suite this is equivalent to FWGLUE_Prefix
-    "TEST_CONTEXT_1-FWGLUE": {"prefix": "10.45.54.24/29", "prefix_type": "fwglue"},
-    # In integration test suite this is equivalent to Vrfglue_prefix
-    "TEST_O-VRFGLUE=TEST-TEST_VRF_1": {"prefix": "10.45.54.208/29", "prefix_type": "vrfglue"},
-    "TEST U-TEST_PREFIX_1=TEST_VRF_1": {"prefix": "10.45.54.24/29", "prefix_type": "user"},
-    "TEST U-TEST_PREFIX_2=TEST_VRF_1": {"prefix": "10.45.54.24/29", "prefix_type": "user"},
 }
 ERR_TYPE_ME_DEVICE, ERR_TYPE_MISSING_DEVICE, ERR_TYPE_EXTRA_DEVICE, ERR_TYPE_MISSING_SECTION, ERR_TYPE_EXTRA_SECTION = (
     "extras-missings-in-device",
@@ -307,11 +298,11 @@ def _determine_correct_values(var_val_dict_full: dict[str, list[list]], infra_pr
             first_most_common_val = _find_first_most_common(vals_valid, fallback="{" + var + "}")
             result[var] = first_most_common_val
 
-    # Finally overwrite/append infrastructure IP ranges with those read from the environment (test suite env)
-    if not infra_prefixes:
-        infra_prefixes = TEMP_UPLINK_PREFIXES
-        
-    for k, v in infra_prefixes.items():
+    # Finally overwrite/append infrastructure IP ranges with those supplied by the caller.
+    # These come from the deployment's own source of truth (an API response, or the
+    # fixture dict the sample corpus ships with), so there is no built-in fallback:
+    # passing none simply means no infrastructure prefixes are known.
+    for k, v in (infra_prefixes or {}).items():
         # Loop and add infra IPs into this dictionary. Important: Keep the key names exactly the same as in constants.py.
         if v['prefix_type'] == "fwglue":
             fwglue_range_start, fwglue_range_end = calc_ipv4_range(ip=v['prefix'][:-3], cidr_mask=v['prefix'][-3:])
@@ -351,44 +342,51 @@ def _lookup_correct_values(var: str, correct_values: dict[str, str], schema, dev
     return correct_val, consistency_type
 
 
-def _value_is_in_pool(var: str, val: str, section_name: str):
+# What a pool violation is called in a report, keyed by the pool's name. The
+# engine's finding types are part of its output contract, so they stay fixed
+# here rather than being derived from whatever a schema happens to name a pool.
+POOL_FINDING_TYPES = {
+    "user_ipv4": "user-ipv4-pool",
+    "infra_ipv4": "infra-ipv4-pool",
+    "user_vlan": "user-vlan-pool",
+    "infra_vlan": "infra-vlan-pool",
+}
+
+
+def _value_is_in_pool(var: str, val: str, section_name: str, schema):
     """
     Description:
-        Determine if a value for a variable is in a globally defined pool range or not.
+        Determine if a value for a variable is in a schema-defined pool range or not.
+
+    A variable with no pool is not checked. That is the point of moving pools into
+    the schema: the ranges were an organization's own, and a deployment that does
+    not declare them gets no pool findings rather than findings against ranges
+    inherited from the network this tool was written for.
+
+    The section-conditional VLAN check the hardcoded version did is gone. It picked
+    the infrastructure pool outside USER PREFIX and the user pool inside it, but
+    both pools held the identical range, so the branch could not change a verdict.
+    Expressing it in the schema would have meant a per-section pool construct built
+    for a distinction nothing currently makes; a schema that needs one can declare
+    a separate variable. See tests/test_schema_equivalence.py, which pins the two
+    ranges as equal and fails if they ever diverge.
     """
     wrong_pool_type = None
     correct_pool = []
 
-    # Read at call time rather than at import, so that a pool source which is not
-    # ready when this module is first imported is still picked up.
-    infra_vlan_pool, user_vlan_pool = get_legit_vlan_pools()[0], get_legit_vlan_pools()[1]
+    pool = schema.pool_for(var)
+    if pool is None:
+        return wrong_pool_type, correct_pool
 
-    infra_ip_pool_dict, user_ip_pool_dict = get_legit_ip_pools()
-    infra_ip_pool = calc_ipv4_range(ip=infra_ip_pool_dict["ip"], cidr_mask=infra_ip_pool_dict["mask"])
-    user_ip_pool = calc_ipv4_range(ip=user_ip_pool_dict["ip"], cidr_mask=user_ip_pool_dict["mask"])
-
-    if var in IPV4_VARIABLES_USER:
-        if not ipv4_in_range(val, user_ip_pool[0], user_ip_pool[1]):
-            wrong_pool_type = "user-ipv4-pool"
-            correct_pool = [user_ip_pool[0], user_ip_pool[1]]
-
-    if var in IPV4_VARIABLES_INFRA:
-        if not ipv4_in_range(val, infra_ip_pool[0], infra_ip_pool[1]):
-            wrong_pool_type = "infra-ipv4-pool"
-            correct_pool = [infra_ip_pool[0], infra_ip_pool[1]]
-
-    if var == "Vlan_ID_user":
-        if section_name == "USER PREFIX" and not vlan_num_in_range(
-            int(val), user_vlan_pool["start"], user_vlan_pool["end"]
-        ):
-            wrong_pool_type = "user-vlan-pool"
-            correct_pool = [str(user_vlan_pool["start"]), str(user_vlan_pool["end"])]
-        elif section_name != "USER PREFIX" and not vlan_num_in_range(
-            int(val), infra_vlan_pool["start"], infra_vlan_pool["end"]
-        ):
-            # Assume sections other than USER PREFIX all need vlan id to be in infrastructure vlan pool
-            wrong_pool_type = "infra-vlan-pool"
-            correct_pool = [str(infra_vlan_pool["start"]), str(infra_vlan_pool["end"])]
+    if pool.kind == "ipv4":
+        low, high = calc_ipv4_range(ip=pool.ip, cidr_mask=pool.mask)
+        if not ipv4_in_range(val, low, high):
+            wrong_pool_type = POOL_FINDING_TYPES[pool.name]
+            correct_pool = [low, high]
+    else:
+        if not vlan_num_in_range(int(val), pool.start, pool.end):
+            wrong_pool_type = POOL_FINDING_TYPES[pool.name]
+            correct_pool = [str(pool.start), str(pool.end)]
 
     return wrong_pool_type, correct_pool
 
@@ -423,7 +421,7 @@ def _value_is_demarcation_ip(val:str, dm_type:int, subnet_range:list[str]):
     
     return wrong_dm_ip_type, correct_dm_ip
 
-def _value_is_wrong_sourced(var: str, val: str, correct_values: dict, section_name: str):
+def _value_is_wrong_sourced(var: str, val: str, correct_values: dict, section_name: str, schema):
     """
     Description:
         Determine if a value for a variable is in correct ranges or not. Correct ranges currently include
@@ -433,7 +431,7 @@ def _value_is_wrong_sourced(var: str, val: str, correct_values: dict, section_na
     #                                       2. Be in the correct subnet, if applicable
 
     # Here is to verify restriction 1.
-    wrong_source_type, correct_source = _value_is_in_pool(var, val, section_name)
+    wrong_source_type, correct_source = _value_is_in_pool(var, val, section_name, schema)
 
     # Here is to verify restriction 2; restriction 2 takes precedence over restriction 1
     cs = ConstantsSingleton.get_instance()
@@ -447,7 +445,7 @@ def _value_is_wrong_sourced(var: str, val: str, correct_values: dict, section_na
             if "netmask" not in cluster_var:
                 try:
                     tmp_val = str(ipaddress.IPv4Address(correct_values[cluster_var]))
-                    tmp_wrong_pool_type, tmp_correct_source = _value_is_in_pool(cluster_var, tmp_val, section_name)
+                    tmp_wrong_pool_type, tmp_correct_source = _value_is_in_pool(cluster_var, tmp_val, section_name, schema)
                     if not tmp_wrong_pool_type:
                         # If found a value in the cluster that is from the correct pool, break
                         # and tmp_val should be storing a valid IP address

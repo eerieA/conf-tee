@@ -158,12 +158,21 @@ def test_syntax_regexes_match_hardcoded(schema):
     assert syntax.section_title_suffix == SECTION_TITLE_SUFFIX
 
 
-def test_pool_ranges_match_helpers(schema):
-    """Pool definitions carry the values the helper functions return today."""
-    from conftee.utils.helpers import get_legit_ip_pools, get_legit_vlan_pools
+# The pool ranges get_legit_ip_pools() and get_legit_vlan_pools() returned until
+# the schema replaced them, copied here verbatim for the same reason as the scope
+# lists above: the helpers were deleted with the code that called them, and
+# keeping their values as test data is what makes the assertion below a
+# comparison against the old behavior rather than a tautology.
+LEGIT_IP_POOL_INFRA = {"ip": "10.45.0.0", "mask": "/16"}
+LEGIT_IP_POOL_USER = {"ip": "10.45.0.0", "mask": "/16"}
+LEGIT_VLAN_POOL_INFRA = {"start": 1, "end": 4096}
+LEGIT_VLAN_POOL_USER = {"start": 1, "end": 4096}
 
-    infra_ip, user_ip = get_legit_ip_pools()
-    infra_vlan, user_vlan = get_legit_vlan_pools()
+
+def test_pool_ranges_match_helpers(schema):
+    """Pool definitions carry the values the helper functions returned."""
+    infra_ip, user_ip = LEGIT_IP_POOL_INFRA, LEGIT_IP_POOL_USER
+    infra_vlan, user_vlan = LEGIT_VLAN_POOL_INFRA, LEGIT_VLAN_POOL_USER
 
     assert (schema.pools["infra_ipv4"].ip, schema.pools["infra_ipv4"].mask) == (
         infra_ip["ip"],
@@ -177,9 +186,12 @@ def test_pool_ranges_match_helpers(schema):
         user_vlan["start"],
         user_vlan["end"],
     )
-    # The infra VLAN pool is currently identical to the user one, which is why a
-    # single `user_vlan` pool suffices. If they ever diverge, the schema needs a
-    # second pool and Vlan_ID_* variables outside USER PREFIX need to point at it.
+    # The infra VLAN pool is identical to the user one, which is why a single
+    # `user_vlan` pool suffices, and why _value_is_in_pool could drop the
+    # section-conditional branch that chose between them: both arms compared
+    # against the same range. If they ever diverge, the schema needs a second
+    # pool, Vlan_ID_* variables outside USER PREFIX need to point at it, and that
+    # branch has to come back in some form.
     assert (infra_vlan["start"], infra_vlan["end"]) == (
         user_vlan["start"],
         user_vlan["end"],

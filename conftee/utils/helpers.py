@@ -158,30 +158,6 @@ def vlan_num_in_range(vlan_num:int, start:int, end:int):
     return start <= vlan_num <= end
 
 
-def get_legit_ip_pools():
-    """
-    Description:
-        Determine ip pool ranges.
-    Args:
-        None.
-    """
-    # Current values are specifically for integration tests. Live network env have various
-    # smaller ranges, and the infrastructural an user pools will be different ranges.
-    tmp_ip_pool_infra = {"ip": "10.45.0.0", "mask": "/16"}
-    tmp_ip_pool_user = {"ip": "10.45.0.0", "mask": "/16"}
-
-    return tmp_ip_pool_infra, tmp_ip_pool_user
-
-
-def get_legit_vlan_pools():
-    # Current values are specifically for integration tests. Real network env don't have
-    # such large ranges, and the infrastructural an user pools will be different ranges.
-    tmp_vlan_pool_infra = {'start': 1, 'end': 4096}
-    tmp_vlan_pool_user = {'start': 1, 'end': 4096}
-
-    return tmp_vlan_pool_infra, tmp_vlan_pool_user
-
-
 def quick_is_device_title(line: str):
     """
     Determine if a line is likely a device title, in a quick and less reliable way.

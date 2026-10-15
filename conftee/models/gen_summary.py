@@ -128,7 +128,7 @@ def _make_line_report(row, correct_values: dict, variable_incons: dict, var_val_
             # Only check value source and consistency if it has correct format, because otherwise these would be meaningless
 
             # Check if it is wrong sourced
-            is_wrong_sourced, wrong_source_type, correct_source = _value_is_wrong_sourced(var_i, val_i, correct_values, section_name)
+            is_wrong_sourced, wrong_source_type, correct_source = _value_is_wrong_sourced(var_i, val_i, correct_values, section_name, schema)
             if is_wrong_sourced:
                 wrong_sourced_vars.append(var_i)
                 if exprs[i]:
@@ -416,7 +416,7 @@ class GenSummary:
                 if la.variable_is_value_match(var, val_on_line[0]):
                     # Same rule as in the create_summary_json(.):
                     # If a value has correct format, has correct source, but is not the same as the overall correct value, then count as inconsistent
-                    is_wrong_sourced, _, _ = _value_is_wrong_sourced(var, val_on_line[0], correct_values, section_name)
+                    is_wrong_sourced, _, _ = _value_is_wrong_sourced(var, val_on_line[0], correct_values, section_name, self.schema)
                     correct_val, _ = _lookup_correct_values(var, correct_values, self.schema, device_name=device_name, section_name=section_name)
                     if not is_wrong_sourced and correct_val[0] != "{" and val_on_line[0] != correct_val:
                         value_incons_cnt += 1

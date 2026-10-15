@@ -20,6 +20,7 @@ from conftee.models.gen_summary import GenSummary
 from conftee.models.outline import Outline
 from conftee.utils.read_config import ReadConfig
 from conftee.utils import schema as schema_module
+from conftee.sample_corpus import SAMPLE_INFRA_PREFIXES
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOLDEN_DIR = os.path.join(ROOT, "golden_config_files")
@@ -46,7 +47,7 @@ def run_pair(name):
         schema = schema_module.load(SCHEMA_PATH)
         results = ConfigCompare(
             (extract_golden, extract_user), (outline_golden, outline_user), schema
-        ).calculate_diff(infra_prefixes=None)
+        ).calculate_diff(infra_prefixes=SAMPLE_INFRA_PREFIXES)
         return GenSummary(schema).generate_reports(outline_golden, outline_user, results)
 
 
