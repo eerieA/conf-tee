@@ -23,7 +23,6 @@ from conftee.utils.constants import (
     SUBNET_CLUSTERS,
     WORD_TYPE_REGEXES,
 )
-from conftee.utils.diff_helpers import VAR_CONS_FILE, VAR_CONS_SECTION, VAR_NO_CONS
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCHEMA_PATH = os.path.join(ROOT, "conftee", "schemas", "cisco-campus.yaml")
@@ -66,6 +65,28 @@ def test_variables_without_arithmetic_match(schema):
     """
     expected = set(WORD_TYPE_REGEXES) - set(IPV4_VARIABLES) - set(INT_VARIABLES)
     assert schema.variables_with_arithmetic(None) == expected
+
+
+# The scope lists diff_helpers held until the schema replaced them, copied here
+# verbatim. They lived next to the code that read them, so converting that module
+# removed the definitions; keeping them as test data is what still makes the
+# assertion below a comparison against the old behavior rather than a tautology.
+VAR_CONS_SECTION = ["GW-FW_outside_IP"]
+VAR_NO_CONS = [
+    "int_#",
+    "password",
+    "key_word",
+    "IP_local_pool_first_IP",
+    "IP_local_pool_last_IP",
+    "IP_local_pool_prefix",
+    "IP_local_pool_netmask",
+    "test_int_#",
+]
+# Computed by subtraction, as diff_helpers did at import time.
+VAR_CONS_FILE = [
+    key for key in WORD_TYPE_REGEXES
+    if key not in VAR_CONS_SECTION and key not in VAR_NO_CONS
+]
 
 
 def test_consistency_scopes_match(schema):

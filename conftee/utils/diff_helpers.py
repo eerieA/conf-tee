@@ -7,21 +7,22 @@ from ..models.constants_singleton import ConstantsSingleton
 from ..models.line_analyzer import LineAnalyzer
 from .helpers import ipv4_in_range, calc_ipv4_range, calc_ipv4_algebra, vlan_num_in_range, get_legit_ip_pools, get_legit_vlan_pools
 
-from .constants import WORD_TYPE_REGEXES, IPV4_VARIABLES_INFRA, IPV4_VARIABLES_USER, SUBNET_CLUSTERS
-VAR_CONS_SECTION, VAR_NO_CONS = ["GW-FW_outside_IP"], [
-    "int_#",
-    "password",
-    "key_word",
-    "IP_local_pool_first_IP",
-    "IP_local_pool_last_IP",
-    "IP_local_pool_prefix",
-    "IP_local_pool_netmask",
-    "test_int_#",
-]
-VAR_CONS_FILE = []
-for key in WORD_TYPE_REGEXES:
-    if (key not in VAR_CONS_SECTION) and (key not in VAR_NO_CONS):
-        VAR_CONS_FILE.append(key)
+from .constants import IPV4_VARIABLES_INFRA, IPV4_VARIABLES_USER, SUBNET_CLUSTERS
+from . import schema as schema_module
+
+
+def _consistency_scopes(schema):
+    """Variables grouped by the span over which their value must stay the same.
+
+    Returns the `section` and `file` sets; `none` is not returned because an
+    exempt variable is never looked up, it is only absent from both.
+
+    Each variable declares its own scope, so `file` is read directly rather than
+    derived by subtracting the other two from the full variable list. That
+    subtraction is why adding a variable to the schema used to silently opt it
+    into file-wide consistency checking.
+    """
+    return schema.variables_with_scope("section"), schema.variables_with_scope("file")
 
 LNK_RELATIONS = {
   'GW-FW_outside_IP': {'USER PREFIX': "FWGLUE_Prefix_1st_IP", 'VRF': 'FWGLUE_Prefix_1st_IP',
@@ -36,7 +37,6 @@ TEMP_UPLINK_PREFIXES = {
     "TEST U-TEST_PREFIX_1=TEST_VRF_1": {"prefix": "10.45.54.24/29", "prefix_type": "user"},
     "TEST U-TEST_PREFIX_2=TEST_VRF_1": {"prefix": "10.45.54.24/29", "prefix_type": "user"},
 }
-INFRA_VLAN_POOL, USER_VLAN_POOL = get_legit_vlan_pools()[0], get_legit_vlan_pools()[1]
 ERR_TYPE_ME_DEVICE, ERR_TYPE_MISSING_DEVICE, ERR_TYPE_EXTRA_DEVICE, ERR_TYPE_MISSING_SECTION, ERR_TYPE_EXTRA_SECTION = (
     "extras-missings-in-device",
     "missing-device",
@@ -158,7 +158,7 @@ def _collect_var_val_dicts(
             var_val_dict_full[var] = new_vals_info
 
 
-def _collect_var_incons(variable_incons: dict[str, list], var_val_dict: dict[str, list], **kwargs):
+def _collect_var_incons(variable_incons: dict[str, list], var_val_dict: dict[str, list], schema=None, **kwargs):
     """
     Description:
         Check and collect inconsistent values in a section or whole file.
@@ -166,6 +166,9 @@ def _collect_var_incons(variable_incons: dict[str, list], var_val_dict: dict[str
     Args:
         variable_incons (dict[str, list]): The dict storing inconsistent variables and their line numbers collected so far.
         var_val_dict (dict[str, list]): The dict storing variables and their values already collected from a section or whole config.
+        schema (Schema, optional): The vocabulary that declares each variable's consistency scope.
+            Defaults to the bundled cisco-campus schema while the engine is being migrated off
+            module-level constants; see utils/schema.default.
         **kwargs: Either a dict with keys 'device_name' and  'section_name' for a sections, or none for a whole config.
 
     Returns:
@@ -185,13 +188,16 @@ def _collect_var_incons(variable_incons: dict[str, list], var_val_dict: dict[str
                 because this is whole file level detection and {RD_ID} has 2 values 34435, 3435.
     """
 
+    schema = schema if schema is not None else schema_module.default()
+    var_cons_section, var_cons_file = _consistency_scopes(schema)
+
     if len(kwargs) == 2 and "device_name" in kwargs and "section_name" in kwargs:
-        constant_dict = VAR_CONS_SECTION
+        constant_dict = var_cons_section
         device_name = kwargs["device_name"]
         section_name = kwargs["section_name"]
         extra_val_info = [device_name, section_name]
     elif len(kwargs) == 0:
-        constant_dict = VAR_CONS_FILE
+        constant_dict = var_cons_file
         extra_val_info = []
     else:
         print("Incorrect **kwargs input for _collect_var_incons(.).")
@@ -243,14 +249,19 @@ def _variable_is_demarcation_ip(var:str):
     
     return dm_type
 
-def _determine_correct_values(var_val_dict_full: dict[str, list[list]], infra_prefixes: dict) -> dict[str, str]:
+def _determine_correct_values(var_val_dict_full: dict[str, list[list]], infra_prefixes: dict, schema=None) -> dict[str, str]:
     """
     Description:
         Determine the correct values for variables. Currently just pick the most frequent ones. Might change later.
     """
+    schema = schema if schema is not None else schema_module.default()
+    var_cons_section, _ = _consistency_scopes(schema)
+    # One analyzer for the whole pass; it was previously rebuilt per value.
+    la = LineAnalyzer(schema)
+
     result = {}
     for var in var_val_dict_full:
-        if var in VAR_CONS_SECTION:
+        if var in var_cons_section:
             curr_device, curr_section = var_val_dict_full[var][0][2], var_val_dict_full[var][0][3]
             vals_in_sections = {}
             vals_in_sections[curr_device] = {}
@@ -280,7 +291,6 @@ def _determine_correct_values(var_val_dict_full: dict[str, list[list]], infra_pr
                     vals_in_sections[curr_device][curr_section] = []
 
                 # Only append value if it is valid
-                la = LineAnalyzer()
                 if la.variable_is_value_match(var, val_in_section[0]):
                     vals_in_sections[curr_device][curr_section].append(val_in_section[0])
 
@@ -295,7 +305,6 @@ def _determine_correct_values(var_val_dict_full: dict[str, list[list]], infra_pr
             vals = [val_on_line[0] for val_on_line in var_val_dict_full[var]]
             # Eliminate all values that does not match the regex
             vals_valid = []
-            la = LineAnalyzer()
             for i in range(len(vals)):
                 if la.variable_is_value_match(var, vals[i]):
                     vals_valid.append(vals[i])
@@ -324,16 +333,19 @@ def _determine_correct_values(var_val_dict_full: dict[str, list[list]], infra_pr
     return result
 
 
-def _lookup_correct_values(var: str, correct_values: dict[str, str], device_name: str = "", section_name: str = ""):
+def _lookup_correct_values(var: str, correct_values: dict[str, str], device_name: str = "", section_name: str = "", schema=None):
     """
     Description:
         Lookup the correct values for variables. This function is tightly coupled with _determine_correct_values(.)'s
         output. So if that changes, this has to be changed.
     """
+    schema = schema if schema is not None else schema_module.default()
+    var_cons_section, _ = _consistency_scopes(schema)
+
     correct_val: str = ""
     consistency_type: int = -1
     try:
-        if var in VAR_CONS_SECTION:
+        if var in var_cons_section:
             correct_val = correct_values[var][device_name][section_name]
             consistency_type = 1
         else:
@@ -353,6 +365,10 @@ def _value_is_in_pool(var: str, val: str, section_name: str):
     wrong_pool_type = None
     correct_pool = []
 
+    # Read at call time rather than at import, so that a pool source which is not
+    # ready when this module is first imported is still picked up.
+    infra_vlan_pool, user_vlan_pool = get_legit_vlan_pools()[0], get_legit_vlan_pools()[1]
+
     infra_ip_pool_dict, user_ip_pool_dict = get_legit_ip_pools()
     infra_ip_pool = calc_ipv4_range(ip=infra_ip_pool_dict["ip"], cidr_mask=infra_ip_pool_dict["mask"])
     user_ip_pool = calc_ipv4_range(ip=user_ip_pool_dict["ip"], cidr_mask=user_ip_pool_dict["mask"])
@@ -369,16 +385,16 @@ def _value_is_in_pool(var: str, val: str, section_name: str):
 
     if var == "Vlan_ID_user":
         if section_name == "USER PREFIX" and not vlan_num_in_range(
-            int(val), USER_VLAN_POOL["start"], USER_VLAN_POOL["end"]
+            int(val), user_vlan_pool["start"], user_vlan_pool["end"]
         ):
             wrong_pool_type = "user-vlan-pool"
-            correct_pool = [str(USER_VLAN_POOL["start"]), str(USER_VLAN_POOL["end"])]
+            correct_pool = [str(user_vlan_pool["start"]), str(user_vlan_pool["end"])]
         elif section_name != "USER PREFIX" and not vlan_num_in_range(
-            int(val), INFRA_VLAN_POOL["start"], INFRA_VLAN_POOL["end"]
+            int(val), infra_vlan_pool["start"], infra_vlan_pool["end"]
         ):
             # Assume sections other than USER PREFIX all need vlan id to be in infrastructure vlan pool
             wrong_pool_type = "infra-vlan-pool"
-            correct_pool = [str(INFRA_VLAN_POOL["start"]), str(INFRA_VLAN_POOL["end"])]
+            correct_pool = [str(infra_vlan_pool["start"]), str(infra_vlan_pool["end"])]
 
     return wrong_pool_type, correct_pool
 

@@ -9,6 +9,7 @@ from ..utils.struct_helpers import _hrch_key_format
 from ..utils.diff_helpers import _lookup_correct_values, _value_is_wrong_sourced, _value_is_wrong_link
 
 from ..utils.constants import GENERAL_IPV4_REGEX
+from ..utils import schema as schema_module
 from ..models.section_comparer import (
     COL_LABEL_LINE_NUM_1,
     COL_LABEL_LINE_NUM_2,
@@ -16,7 +17,7 @@ from ..models.section_comparer import (
     ERR_TYPE_EXTRA_LINE,
 )
 from ..utils.diff_helpers import (
-    VAR_CONS_SECTION,
+    _consistency_scopes,
     LNK_RELATIONS,
     ERR_TYPE_MISSING_DEVICE,
     ERR_TYPE_EXTRA_DEVICE,
@@ -74,12 +75,15 @@ def _is_missing_extra(row):
     is_line_2_empty = _line_is_empty(row[COL_LABEL_LINE_CNTT_2])
     return (_line_is_extra(row) and not is_line_2_empty) or (_line_is_missing(row) and not is_line_1_empty)
 
-def _make_line_report(row, correct_values: dict, variable_incons: dict, var_val_dict_full: dict, device_name: str, section_name: str):
+def _make_line_report(row, correct_values: dict, variable_incons: dict, var_val_dict_full: dict, device_name: str, section_name: str, schema=None):
     """
     Description:
         Row data processing function applied to a result Dataframe in specific format.
         This is another load bearing function for json report generation besides the create_summary_json(.)
     """
+    schema = schema if schema is not None else schema_module.default()
+    var_cons_section, _ = _consistency_scopes(schema)
+
     is_line_1_empty = _line_is_empty(row[COL_LABEL_LINE_CNTT_1])
     is_line_2_empty = _line_is_empty(row[COL_LABEL_LINE_CNTT_2])
 
@@ -105,7 +109,7 @@ def _make_line_report(row, correct_values: dict, variable_incons: dict, var_val_
     wrong_link_vars, wrong_link_vals, wrong_link_types, wrong_link_corrections = [], [], [], []
     mismatched_cmd = 0
 
-    la = LineAnalyzer()
+    la = LineAnalyzer(schema)
     for i in range(len(vars)):
         # First determine if vars[i] is an atomic variable or an expression
         if exprs[i] is False:
@@ -115,13 +119,13 @@ def _make_line_report(row, correct_values: dict, variable_incons: dict, var_val_
         else:
             # This means this is an expression.
             var_i = exprs[i][1:-1]
-            val_i = _evaluate_expression_reverse(vars[i], var_i, vals[i])
+            val_i = _evaluate_expression_reverse(vars[i], var_i, vals[i], schema=schema)
 
         # Reminder: From here on, vals[i] is the value for a variable or expression, but val_i is definately
         # value for a variable; so check format mismatches using vals[i], but check inconsistencies etc using val_i.
 
         # Look up correct values collected beforehand, so that various inner checks inside the if-blocks can use it at will
-        correct_val, consistency_type = _lookup_correct_values(var_i, correct_values, device_name, section_name)
+        correct_val, consistency_type = _lookup_correct_values(var_i, correct_values, device_name, section_name, schema=schema)
         if la.variable_is_value_match(var_i, vals[i]):
             # Only check value source and consistency if it has correct format, because otherwise these would be meaningless
 
@@ -152,7 +156,7 @@ def _make_line_report(row, correct_values: dict, variable_incons: dict, var_val_
                         incons_corrections.append(correct_val)
                         if exprs[i] is False
                         else incons_corrections.append(
-                            _evaluate_expression(expression=vars[i], variable=var_i, var_value=correct_val)
+                            _evaluate_expression(expression=vars[i], variable=var_i, var_value=correct_val, schema=schema)
                         )
                     )
 
@@ -213,7 +217,7 @@ def _make_line_report(row, correct_values: dict, variable_incons: dict, var_val_
                     correct_val = "<" + " - ".join(wrong_sourced_corrections[wrong_sourced_var_idx]) + ">"
                 except ValueError:
                     # If var is not in wrong_sourced_vars (ValueError), meaning we can check consistency
-                    if var in VAR_CONS_SECTION:
+                    if var in var_cons_section:
                         correct_val = correct_values[var][device_name][section_name]
                     else:
                         correct_val = correct_values[var]
@@ -229,7 +233,7 @@ def _make_line_report(row, correct_values: dict, variable_incons: dict, var_val_
                 else:
                     # Adjust the correct value based on whether it is an IPv4 address or not
                     correct_val_is_ipv4 = bool(re.fullmatch(GENERAL_IPV4_REGEX, correct_val))
-                    correct_val_adj = _evaluate_expression(vars[var_idx], var, correct_val) if correct_val_is_ipv4 else correct_val
+                    correct_val_adj = _evaluate_expression(vars[var_idx], var, correct_val, schema=schema) if correct_val_is_ipv4 else correct_val
                     expected = expected.rstrip() + " " + correct_val_adj
 
                 # We trust the LineAnalyzer to have collected corresponding var-val pairs correctly, so var[var_idx]
@@ -390,13 +394,16 @@ class GenSummary:
         variable_incons: dict[str, list],
         correct_values: dict[str, str],
         diff_result_df: DataFrame,
+        schema=None,
     ):
         value_mismatch_cnt = sum(value_mismatch_lines)
         struct_mismatch_cnt = len(struct_mismatches)
         value_incons_cnt = 0
 
+        schema = schema if schema is not None else schema_module.default()
+
         # Count variable inconsistency errors
-        la = LineAnalyzer()
+        la = LineAnalyzer(schema)
         for var in variable_incons:
             for val_on_line in variable_incons[var]:
                 device_name, section_name = val_on_line[2], val_on_line[3]
@@ -404,7 +411,7 @@ class GenSummary:
                     # Same rule as in the create_summary_json(.):
                     # If a value has correct format, has correct source, but is not the same as the overall correct value, then count as inconsistent
                     is_wrong_sourced, _, _ = _value_is_wrong_sourced(var, val_on_line[0], correct_values, section_name)
-                    correct_val, _ = _lookup_correct_values(var, correct_values, device_name, section_name)
+                    correct_val, _ = _lookup_correct_values(var, correct_values, device_name, section_name, schema=schema)
                     if not is_wrong_sourced and correct_val[0] != "{" and val_on_line[0] != correct_val:
                         value_incons_cnt += 1
 
@@ -437,6 +444,7 @@ class GenSummary:
         variable_incons: dict,
         var_val_dict_full: dict[str, list[list[Union[str, int]]]],
         diff_result_df: pandas.DataFrame,
+        schema=None,
     ):
         """
         Description:
@@ -522,6 +530,7 @@ class GenSummary:
                                 var_val_dict_full,
                                 device_merged,
                                 section_merged,
+                                schema,
                             ),
                             axis=1,
                         )
@@ -564,6 +573,7 @@ class GenSummary:
                             var_val_dict_full,
                             device_merged,
                             section_merged,
+                            schema,
                         ),
                         axis=1,
                     )

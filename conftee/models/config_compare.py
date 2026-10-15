@@ -4,6 +4,7 @@ from .differ_o import DifferO
 from .outline import Outline
 from .section_comparer import SectionComparer
 from ..utils import struct_helpers, diff_helpers
+from ..utils import schema as schema_module
 
 from ..utils.diff_helpers import (
     METype,
@@ -19,7 +20,7 @@ from ..utils.constants import BLOCK_TYPE_DEVICE, BLOCK_TYPE_SECTION
 
 class ConfigCompare:
 
-    def __init__(self, file_data, outline_data: list[Outline]):
+    def __init__(self, file_data, outline_data: list[Outline], schema=None):
         """
         Description:
             Instantiate. This class handles pre and post processing of diff checking. It is designed as the "main" class for outside modules and programs.
@@ -28,7 +29,12 @@ class ConfigCompare:
         Args:
             content_1 (list[str]): Input data 1. Ideally collected from the golden config file.
             content_2 (list[str]): Input data 2. Ideally collected from the user config JSON object.
+            schema (Schema, optional): The vocabulary the whole comparison runs against, passed
+                down to the SectionComparer and the diff helpers. Defaults to the bundled
+                cisco-campus schema while the engine is being migrated off module-level
+                constants; see utils/schema.default.
         """
+        self.schema = schema if schema is not None else schema_module.default()
         self.file_struct_1 = file_data[0]
         self.file_struct_2 = file_data[1]
         self.outline_1 = outline_data[0]
@@ -146,7 +152,7 @@ class ConfigCompare:
         var_val_dict_full,
         variable_incons,
     ):
-        sc = SectionComparer(general_diff_cutoff=0.12)
+        sc = SectionComparer(general_diff_cutoff=0.12, schema=self.schema)
         (
             diff_lines,
             idx_in_ori_1st_list,
@@ -175,6 +181,7 @@ class ConfigCompare:
         diff_helpers._collect_var_incons(
             variable_incons=variable_incons,
             var_val_dict=var_val_dict,
+            schema=self.schema,
             device_name=device_name,
             section_name=section_name,
         )
@@ -496,8 +503,8 @@ class ConfigCompare:
                 )
 
         # Collect file variablbe inconsisitencies and determine variable's correct values as well
-        diff_helpers._collect_var_incons(variable_incons=variable_incons, var_val_dict=var_val_dict_full)
-        correct_values = diff_helpers._determine_correct_values(var_val_dict_full, infra_prefixes=infra_prefixes)
+        diff_helpers._collect_var_incons(variable_incons=variable_incons, var_val_dict=var_val_dict_full, schema=self.schema)
+        correct_values = diff_helpers._determine_correct_values(var_val_dict_full, infra_prefixes=infra_prefixes, schema=self.schema)
 
         """ print("var_val_dict_full", var_val_dict_full)
         print("variable_incons", variable_incons)
