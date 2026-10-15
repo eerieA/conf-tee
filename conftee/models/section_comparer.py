@@ -15,14 +15,14 @@ from .differ_o import (
     TAG_CHANGE_BOTH, TAG_CHANGE_1ST, TAG_CHANGE_2ND,
     TAG_IDENTICAL,
 )
-from ..utils.constants import IPV4_VARIABLES, INT_VARIABLES
+from ..utils import schema as schema_module
 
 OPERATION_REGEX = r"\}[+-]([1-9][0-9]?|[0-9])"
 ERR_TYPE_MISSING_LINE, ERR_TYPE_EXTRA_LINE = "missing-line", "extra-line"
 
 
 ## Helper functions related to SectionComparer
-def _evaluate_expression(expression: str, variable: str, var_value: str, _reverse: bool = False):
+def _evaluate_expression(expression: str, variable: str, var_value: str, _reverse: bool = False, schema=None):
     """
     Description:
         Helper function to read simple algebraic operation from a string and calculate result.
@@ -34,6 +34,9 @@ def _evaluate_expression(expression: str, variable: str, var_value: str, _revers
         variable (str): The string containing the variable's name, no brackets. Should be in the expression string.
         value (str): A value corresponding to the variable. Should be in the format required by the variable.
         _reverse (bool, Optional): Whether the operator should be "reversed". Intended for internal use.
+        schema (Schema, optional): The vocabulary that says which arithmetic applies to the variable.
+            Defaults to the bundled cisco-campus schema while the engine is being migrated off
+            module-level constants; see utils/schema.default.
 
     Returns:
         str | int | None: Currently either an IPv4 address string or an int. Return empty string if fails.
@@ -52,10 +55,18 @@ def _evaluate_expression(expression: str, variable: str, var_value: str, _revers
     operator = op_str[1] if not _reverse else reverse_operator(op_str[1])
     # The rest of a valid match will be a string containing only 0-99
     operand = int(op_str[2:])
-    if variable in IPV4_VARIABLES:
+    schema = schema if schema is not None else schema_module.default()
+    # An undeclared variable and a declared one with no arithmetic are the same error
+    # to a caller, so the KeyError is folded into the ValueError raised below.
+    try:
+        arithmetic = schema.arithmetic_for(variable)
+    except KeyError:
+        arithmetic = None
+
+    if arithmetic == "ipv4":
         # This means the variable should have an IPv4 address value
         result = calc_ipv4_algebra(ip=var_value, operator=operator, operand=operand)
-    elif variable in INT_VARIABLES:
+    elif arithmetic == "int":
         # This means the variable should have an integer value
         value_int = string_to_int_safe(var_value)
         if value_int:
@@ -68,27 +79,31 @@ def _evaluate_expression(expression: str, variable: str, var_value: str, _revers
     return result
 
 
-def _evaluate_expression_reverse(expression: str, variable: str, expr_value: str):
+def _evaluate_expression_reverse(expression: str, variable: str, expr_value: str, schema=None):
     """
     Description:
         Helper function that solves variable's value from an expression's value. "Reverse" whatever operators
         the _evaluate_expression(.) supports. So it is also a wrapper upon that helper function.
     """
-    return _evaluate_expression(expression, variable, expr_value, _reverse=True)
+    return _evaluate_expression(expression, variable, expr_value, _reverse=True, schema=schema)
 
 
 ## Class start
 class SectionComparer:
 
-    def __init__(self, general_diff_cutoff: float):
+    def __init__(self, general_diff_cutoff: float, schema=None):
         """
         Description:
             Instantialize. This class handles comparison at the section (list of sentences) level.
 
         Args:
             general_diff_cutoff (float): General line similarity (not excluding variables) cutoff for a DifferO to use. Meaning a line pair with similarity > this value will be compared in depth; < this value will be seen as missing/extra.
+            schema (Schema, optional): The vocabulary to compare against, passed down to the
+                LineAnalyzer. Defaults to the bundled cisco-campus schema while the engine is
+                being migrated off module-level constants; see utils/schema.default.
         """
-        self.line_analyzer = LineAnalyzer()
+        self.schema = schema if schema is not None else schema_module.default()
+        self.line_analyzer = LineAnalyzer(self.schema)
         self.general_cutoff = general_diff_cutoff
 
     def _flush_by_1(self, list: list[int], start_idx: int, end_idx: int, skip_value: int = -1):
@@ -255,7 +270,7 @@ class SectionComparer:
                 # In this case the variable is recorded at is_exprs_line[i] with brakets.
                 var = is_exprs_line[i][1:-1]
                 # And its value needs to be calculated.
-                val = _evaluate_expression_reverse(vars_line[i], var, vals_line[i])
+                val = _evaluate_expression_reverse(vars_line[i], var, vals_line[i], schema=self.schema)
 
             if var in result and i < len(vals_line):
                 result[var].append([val, val_line_num])

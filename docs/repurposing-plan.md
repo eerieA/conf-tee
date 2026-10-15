@@ -330,11 +330,11 @@ amount to the global this design rejected.
       the syntax regexes hardcoded across `extract.py`, `section.py`,
       `line_analyzer.py` and `section_comparer.py`. Verified by mutation: seven
       classes of deliberate schema corruption each fail it.
-- [ ] `LineAnalyzer`: replace `WORD_TYPE_REGEXES` lookups (`:39`, `:426`) and the
+- [x] `LineAnalyzer`: replace `WORD_TYPE_REGEXES` lookups (`:39`, `:426`) and the
       `IPV4_VARIABLES` membership test (`:290`) with `regex_for` and
       `variables_with_arithmetic`. Smallest of the three, so the seam's shape is
       settled here before it is repeated.
-- [ ] `SectionComparer`: arithmetic kind by type rather than by
+- [x] `SectionComparer`: arithmetic kind by type rather than by
       `IPV4_VARIABLES` / `INT_VARIABLES` membership (`:55`).
 - [ ] `diff_helpers`: the awkward one, and last for that reason. Beyond threading,
       it has module-level state that no argument can displace: `VAR_CONS_FILE` is
