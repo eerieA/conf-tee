@@ -6,11 +6,13 @@ variables must agree with each other, and what ranges their values must fall in.
 The engine previously recovered all of this by matching on variable *names*, so
 a user had to adopt one organization's naming convention to get correct results.
 
-Nothing in this module is wired into the engine yet. It is built and validated
-first, against `utils/constants.py`, so that a transcription error in the schema
-file surfaces as a failed equivalence test rather than as a shifted report much
-later. See docs/repurposing-plan.md section 2.
+This module was built and validated against `utils/constants.py` before being
+wired into anything, so that a transcription error in the schema file surfaced as
+a failed equivalence test rather than as a shifted report much later. The engine
+modules are now being converted to read from it one at a time. See
+docs/repurposing-plan.md section 2.
 """
+import os
 import re
 
 import yaml
@@ -322,6 +324,30 @@ def load(path):
     """Load and validate a schema from a YAML file."""
     with open(path, encoding="utf-8") as handle:
         return loads(handle.read(), source=path)
+
+
+BUNDLED_SCHEMA_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "schemas",
+    "cisco-campus.yaml",
+)
+
+_default_schema = None
+
+
+def default():
+    """The bundled cisco-campus schema, loaded once.
+
+    Scaffolding for the migration off module-level constants: it lets each engine
+    module take an optional schema argument and convert independently, instead of
+    every call site having to change in one commit. Delete this together with the
+    optional arguments once every caller passes a schema explicitly, since until
+    then the engine has two ways to get its vocabulary.
+    """
+    global _default_schema
+    if _default_schema is None:
+        _default_schema = load(BUNDLED_SCHEMA_PATH)
+    return _default_schema
 
 
 def loads(text, source=None):

@@ -300,6 +300,21 @@ first three steps add code without changing what runs, so a mistake in the
 56-regex transcription is caught by a direct comparison rather than debugged
 later through a shifted report.
 
+Threading the schema through the engine is then split into one step per module,
+so a regression points at a single module rather than at three converted at once.
+The schema is passed explicitly as a constructor or function argument, never read
+from a module-level global; see §4 for why. It still *flows* top-down at runtime,
+entry point to `SectionComparer` to `LineAnalyzer`, as the constants do today.
+The modules are converted leaves-first, which is the opposite order, so that each
+one's dependents are still stable while it changes.
+
+During those steps the schema argument is optional, defaulting to the bundled
+`cisco-campus.yaml`, because a required argument would break all five
+construction sites at once and collapse them back into one. The default is
+scaffolding, and the step that makes the argument required is its removal
+trigger: while it exists there are two code paths, and leaving it in place would
+amount to the global this design rejected.
+
 - [x] `schema.py`: parse and validate YAML into internal structures, with clear
       errors for malformed schemas. Cross-references (variable to type, group
       member to variable, variable to pool) are resolved at load time, so a
@@ -315,9 +330,20 @@ later through a shifted report.
       the syntax regexes hardcoded across `extract.py`, `section.py`,
       `line_analyzer.py` and `section_comparer.py`. Verified by mutation: seven
       classes of deliberate schema corruption each fail it.
-- [ ] Thread a schema object through `LineAnalyzer`, `SectionComparer`,
-      `diff_helpers` in place of module-level constant imports. Includes the
-      import-time pool computation at `diff_helpers.py:39`.
+- [ ] `LineAnalyzer`: replace `WORD_TYPE_REGEXES` lookups (`:39`, `:426`) and the
+      `IPV4_VARIABLES` membership test (`:290`) with `regex_for` and
+      `variables_with_arithmetic`. Smallest of the three, so the seam's shape is
+      settled here before it is repeated.
+- [ ] `SectionComparer`: arithmetic kind by type rather than by
+      `IPV4_VARIABLES` / `INT_VARIABLES` membership (`:55`).
+- [ ] `diff_helpers`: the awkward one, and last for that reason. Beyond threading,
+      it has module-level state that no argument can displace: `VAR_CONS_FILE` is
+      computed by subtraction at import time (`:22`-`:24`), and the VLAN pools at
+      `:39`. The subtraction becomes `variables_with_scope`, which is a semantic
+      change rather than a reroute, so it is isolated here with the other two
+      modules already converted and passing.
+- [ ] Make the schema argument required and delete the default, once every caller
+      passes one explicitly.
 - [ ] Move pools into the schema, with absent pools meaning "do not check".
       Retire `TEMP_UPLINK_PREFIXES`, `get_legit_ip_pools()`,
       `get_legit_vlan_pools()`.
@@ -378,6 +404,7 @@ Recorded so they are not silently re-litigated later.
 | Rename to `conf-tee` / `conftee` | The old name promised a diff tool, setting the wrong expectation for what this does. `conf-tee` keeps the networking origin story through shared muscle memory (`conf t`) while reading harmlessly to outsiders, and does not trap the tool in the networking niche. Renamed while the project had zero users, when lock-in was zero. |
 | Build the schema from `constants.py`, not `constants.desired.py` | It is what the regression baseline pins, and the client's intended values carry known regex errors. |
 | Make pools optional rather than deleting them | The hardcoded ranges are org-specific, but they feed real checks; a bare delete would remove a check while looking behavior-neutral. |
+| Pass the schema explicitly, not via a module-level accessor | An accessor is one global slot, so two schemas in one process are impossible and the test suites share mutable state. It also keeps the import-time problem alive as "was the schema set before this ran?", which an argument makes unrepresentable. Costs a wider diff and a parameter threaded through callers that do not read it. |
 | Keep the guard salt unchanged after the rename | It is an opaque constant; changing it would invalidate every digest. See the note in `tests/test_regression.py`. |
 
 ---

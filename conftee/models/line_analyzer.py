@@ -3,7 +3,8 @@ from typing import Union
 from difflib import SequenceMatcher
 
 from .section import SECTION_TITLE_LINE_REGEX
-from ..utils.constants import WORD_TYPE_REGEXES, IPV4_VARIABLES, GENERAL_IPV4_REGEX
+from ..utils import schema as schema_module
+from ..utils.constants import GENERAL_IPV4_REGEX
 
 VARIABLE_REGEX = r"\{[\-\#\w]+\}"
 EXPRESSION_REGEX = r"\{\{[\-\#\w]+\}[-+][0-9]\}"
@@ -12,12 +13,18 @@ INFRQ_CHAR_FOR_VARIABLE, INFRQ_CHAR_FOR_IPV4 = ";", ":"
 
 class LineAnalyzer:
 
-    def __init__(self):
+    def __init__(self, schema=None):
         """
         Description:
             Instantiate. This class handles comparison at a signle (pair of) line level.
+
+        Args:
+            schema (Schema, optional): The vocabulary to validate values against.
+                Defaults to the bundled cisco-campus schema while the engine is
+                being migrated off module-level constants; see utils/schema.default.
         """
-        pass
+        self.schema = schema if schema is not None else schema_module.default()
+        self.ipv4_variables = self.schema.variables_with_arithmetic("ipv4")
 
     def variable_is_value_match(self, variable: str, value: str) -> bool:
         """
@@ -36,13 +43,13 @@ class LineAnalyzer:
             variable_is_value_match("Vlan_ID_user", "a123") will return: False
         """
         try:
-            regex = WORD_TYPE_REGEXES[variable]
+            regex = self.schema.regex_for(variable)
         except ValueError:
             print(f"Key {variable} lookup in the regex dictionary failed.")
             return False
 
         try:
-            is_match = bool(re.fullmatch(regex, value))
+            is_match = bool(regex.fullmatch(value))
         except Exception as e:
             raise RuntimeError(f"Regex match error {e.msg}")
 
@@ -287,7 +294,7 @@ class LineAnalyzer:
                 # If has variables, append them to the list, and take note of whether there are IPv4 variables
                 variables_idx.extend(bracket_pairs)
                 for var in var_list:
-                    if var[1 : len(var) - 1] in IPV4_VARIABLES:
+                    if var[1 : len(var) - 1] in self.ipv4_variables:
                         has_ipv4_g = True
 
         return variables_idx, has_ipv4_g
@@ -423,7 +430,7 @@ class LineAnalyzer:
                     cnt_matched = 0
                     for k in range(conseq_vars_num):
                         curr_var = variables_g[j + k][1:-1]
-                        curr_match = re.search(WORD_TYPE_REGEXES[curr_var], words_u[i])
+                        curr_match = self.schema.regex_for(curr_var).search(words_u[i])
                         if curr_match:
                             cnt_matched += 1
                             curr_matched_word = words_u[i][curr_match.start() : curr_match.end()]
