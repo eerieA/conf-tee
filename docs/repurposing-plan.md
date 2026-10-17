@@ -523,31 +523,76 @@ paths twice has the same cost, so the moves come first and the prose follows.
       129 corpus files it reached before. This guard matters more now the repo
       is public, so it is worth noting that the move could have silently
       hollowed it out.
-- [ ] **Verify packaging.** Confirm corpus files are excluded from the built
-      wheel, and that `conftee/schemas/*.yaml` is *included*. Poetry's
-      `packages = [{ include = "conftee" }]` takes `*.py` by default, so the
-      bundled schema needs an explicit include rule or it ships missing.
-      `sample_corpus.py` has moved out of `conftee/` to `examples/`, so it no
-      longer ships by default and no longer needs an exclude rule; what remains
-      is to confirm that in the built wheel. Placed here, directly after the moves,
-      because that is when the answer is cheapest to check and the layout is
-      still fresh. Verify: build the wheel and list its contents.
-- [ ] **Rewrite `README.md`** around the reverse-template framing rather than
-      "compare configuration files". Lead with what the tool uniquely does.
-      It can now cite `examples/` paths that will not move again.
-      Include a short statement of what the tool does *not* do yet: a foreign
-      vocabulary works and a foreign block syntax does not. See the limits
-      recorded in section 3 under Phase 2. A visitor who needs nginx block
-      syntax should learn that in ten seconds rather than after an hour, and the
-      repo is public now, so that cost is being paid by real readers.
-- [ ] **Add a worked non-Cisco example** (nginx or systemd) to demonstrate
-      generality. Without one, the general framing is untested.
-      Partly done: `tests/test_schema_generality.py` runs an nginx-flavoured
-      vocabulary end to end, sharing no variable, type, pool or regex with the
-      bundled schema. It is a test rather than user-facing documentation, so
-      the README example is still owed, but the claim is now executable.
-      Likely merges with the item above, as a README section or a file in
-      `examples/` that the README points at, lifted from the test's fixtures.
+- [x] **Verify packaging.** Done. Contents were already right: the wheel ships
+      `conftee/` with `schemas/cisco-campus.yaml` and the html templates, and no
+      corpus file, `sample_corpus.py`, test or `main.py`. The predicted problem
+      did not exist. Poetry's `packages = [{ include = "conftee" }]` takes the
+      whole package directory, not just `*.py`, so no explicit include rule was
+      needed for the schema.
+
+      Three real defects showed up instead, none of them about file selection,
+      and all found only by installing the wheel rather than listing it:
+
+      1. **The wheel was uninstallable.** `[project].dependencies` listed
+         `"python >= 3.9"`, which is an interpreter constraint written as if it
+         were a package. It became `Requires-Dist: python (>=3.9)`, and pip
+         failed with `No matching distribution found for python>=3.9`.
+      2. **No runtime dependency shipped at all.** Poetry 2.x reads `[project]`
+         in preference to `[tool.poetry]`, so the real list under
+         `[tool.poetry.dependencies]` was ignored and the wheel declared none of
+         colored, Mako, Jinja2, PyYAML or pandas. Installing it into a clean
+         environment produced an immediately broken install.
+      3. **The license was published as proprietary.** `license = {file = ...}`
+         in `[project]` overrode `license = "MIT"` in `[tool.poetry]`, yielding
+         `Classifier: License :: Other/Proprietary License` on an MIT project.
+         The worst of the three for a public repo, since it contradicts
+         `LICENSE` where a reader is least likely to look.
+
+      All three had one cause: metadata duplicated across `[project]` and
+      `[tool.poetry]`, where the `[project]` copy silently wins. The comment
+      above `[project]` asserted the opposite, that the section "will not be
+      read since currently built through poetry", which is how the duplicates
+      went unnoticed. Fixed by making `[project]` the single source of truth and
+      reducing `[tool.poetry]` to the `packages` build setting.
+
+      Verify: build, install the wheel into a clean venv, and use it from
+      outside the repository. That last step is what proves the shipped schema
+      is loadable by path from the installed package rather than merely present
+      in the archive.
+- [x] **Rewrite `README.md`** around the reverse-template framing. Done. It
+      opens on the inverse-of-Jinja2 framing and on the questions a diff cannot
+      answer, which is the part worth generalizing, then gives the checks as a
+      table. The old opening described the tool as comparing a config "against a
+      manually defined standard format", which named the mechanism and not the
+      capability.
+
+      "What it does not do yet" is its own section, third, above installation,
+      so the vocabulary-yes/dialect-no limit is visible before a reader invests
+      any time. It also records the whitespace-token limit, since that one bites
+      on the first realistic attempt at a foreign file.
+
+      Two corrections fell out of writing it. The old integration example
+      constructed `ConfigCompare(extractData, outlineData)` and `GenSummary()`
+      with no schema, which both now require: the documented example could not
+      have run since Phase 2. And it carried a disclaimer that it "might not
+      actually work", which is now unnecessary, because the replacement is
+      executed verbatim out of the README as part of verifying this item.
+      The old sample also asserted zero mismatches against a deliberately
+      non-conforming pair, so a reader copying it would have hit an
+      AssertionError; it now prints the counts and shows the assertion form
+      separately.
+- [x] **Add a worked non-Cisco example.** Done, merged into the README as
+      predicted. It is the web-server vocabulary from
+      `tests/test_schema_generality.py`, with the schema fragment, the template,
+      and a real failing report produced by running it rather than written by
+      hand. The README points at the test as the source, so the example is
+      covered by the suite and cannot quietly stop working.
+
+      The report shown is a `hostname` type rejecting `app.internal.local`, a
+      well-formed hostname that is wrong only against that schema. That makes
+      the point the framing rests on better than a malformed value would: the
+      tool is checking conformance to a declared vocabulary, not validity in
+      general.
 - [x] Unpin over-specific dependency versions. Done ahead of schedule during
       Phase 2, because the exact `==` pins were blocking the test suite from
       installing at all; see the environment faults noted there.

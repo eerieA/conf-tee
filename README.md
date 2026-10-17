@@ -1,53 +1,307 @@
 # conf-tee
 
-## Overview
-This tool is designed to compare generated configuration file against a maually defined standard format. Differences between the two files are aggregated into a table for human review, and into a JSON report for integration use.
+**A reverse-template validator.** Give it a template with typed, named holes and
+constraints between them, and a real text file; it reports which holes are wrong
+and why.
+
+This is the inverse of Jinja2 or Mako. A template engine renders *forward*,
+substituting values into holes. This tool runs the other way: it aligns a real
+file against the template, *extracts* the value sitting in each hole, and then
+checks those values. So it can answer questions a diff cannot:
+
+- Is this value even the right shape? (`{Listen_port}` bound to `localhost`)
+- Is it consistent? (the same `{VRF_name}` appearing twice in one section with
+  two different values)
+- Does it satisfy an arithmetic relation? (`{{Prefix_1st_IP}+1}` must be exactly
+  one past whatever `{Prefix_1st_IP}` turned out to be)
+- Is it in the right range? (an address that must fall inside a declared subnet)
+- And separately from all of that: are any lines missing, extra, or reordered?
+
+A plain diff reports that two lines differ. This reports that `10.45.54.30` is a
+valid address but the wrong one, because an earlier line already bound that
+variable to something else.
+
+Output is a JSON report for machines and a table for humans.
+
+## What it checks
+
+| Check | Example of what it catches |
+|---|---|
+| Value format | A hostname where a port belongs |
+| Unbound holes | A variable in the template with nothing in front of it |
+| Missing / extra lines | A line the template has and the real file does not |
+| Block structure | A device or section block absent, extra, or out of order |
+| Consistency | One variable taking two different values in the same scope |
+| Arithmetic | `{{First_IP}+1}` not actually one past `{First_IP}` |
+| Range / pool membership | An address outside the subnet it was declared in |
+| Literal text | A difference in a line with no variables at all |
+
+One check from the original requirements is **not** implemented: detecting
+relational anomalies between structures, such as a mismatch between the number
+of downlink port channels and the number of downlink device blocks.
+
+## What it does not do yet
+
+**Your vocabulary: yes. Your syntax: no.**
+
+The vocabulary is fully yours. Variable names, value types and their regexes,
+arithmetic, consistency scopes, subnet families and address pools are all
+declared in a YAML schema you supply. Nothing about them is hardcoded, and
+`tests/test_schema_generality.py` demonstrates it by running a web-server
+vocabulary that shares no variable, type, pool, or regex with the bundled Cisco
+one.
+
+The *block syntax* is not yours yet. How a device block or a section is
+recognized is still matched by module-level regexes inside `extract.py`,
+`section.py`, `line_analyzer.py` and `section_comparer.py`. The schema has a
+`syntax:` section, and it is parsed and validated, but the engine does not read
+it. So your files must currently use the Cisco-shaped markers shown below, even
+when everything inside them is your own.
+
+There is a second, smaller limit worth knowing before you try your own files: a
+variable must be its own whitespace-delimited token. Lines are split on
+whitespace, and a word counts as a hole only when the variable pattern matches
+the whole word. So nginx's `listen {Listen_port};` does **not** work, because the
+trailing semicolon makes the token `{Listen_port};`. Written as
+`listen {Listen_port}`, it does.
+
+If you need either of those, the work is scoped in
+[docs/repurposing-plan.md](./docs/repurposing-plan.md).
+
+## Install
+
+```
+python -m pip install conftee
+```
+
+Or from a local build, which is how it is tested today:
+
+```
+poetry build
+python -m pip install dist/conftee-0.1.5-py3-none-any.whl
+```
+
+Python 3.9 or newer. The dependencies (`colored`, `Mako`, `Jinja2`, `PyYAML`,
+`pandas`) install with it.
+
+For working *on* the tool rather than with it, see
+[Addendum A](#addendum-a-development-setup).
+
+## Writing a template
+
+A template is your config with values replaced by `{Variable}` holes, plus the
+block markers the engine looks for.
+
+```
+~~~~~~~ site01-hub1 ~~~~~~~
+! ########### VRF START ###########
+  ip vrf {VRF_name}
+  ip address {Vrfglue_prefix_1st_IP} {Vrfglue_prefix_netmask}
+  standby ip {{Vrfglue_prefix_1st_IP}+1}
+! ########### VRF END ###########
+```
+
+The rules, which are the syntax limitation described above:
+
+- The file must start with `~` (leading whitespace is fine) and contain at least
+  one device title and one section title.
+- A device title starts with at least three tildes: `~~~ name ~~~`.
+- A section starts with exactly `! #` and looks like `! # CONTEXT START #`. The
+  matching `END` line is optional.
+- Holes are `{Name}`, and names are **case sensitive**: `{User_prefix}` and
+  `{User_Prefix}` are two different variables.
+- Arithmetic nests the braces and takes integer operands only:
+  `{{Vrfglue_prefix_1st_IP}+1}`.
+- Device names must match exactly. `al1asa` against `al1asaX` is a structure
+  mismatch, not a value mismatch.
+
+## Describing your vocabulary
+
+The schema declares what your variables mean. This is the part that is fully
+general. A fragment:
+
+```yaml
+types:
+  port:
+    regex: '(80|443|8080|[1-9][0-9]{3})'
+    arithmetic: int
+  hostname:
+    regex: '[a-z][a-z0-9\-]*\.example\.(com|net)'
+  ipv4:
+    regex: '([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.(...)'
+    arithmetic: ipv4
+
+pools:
+  backend_net: {kind: ipv4, ip: '10.20.0.0', mask: '/16'}
+
+variables:
+  Listen_port: port
+  Server_name: hostname
+  Backend_first: {type: ipv4, pool: backend_net}
+  Backend_mask: {type: subnet_mask, role: netmask}
+  Root_path: {type: fs_path, scope: none}
+
+groups:
+  backend_pool:
+    members: [Backend_first, Backend_second, Backend_mask]
+```
+
+Three things to notice, because each replaces a convention the engine used to
+impose on your names:
+
+- `role: netmask` marks the netmask. The engine used to test for the substring
+  `netmask` in the variable's own name.
+- `groups:` declares a subnet family outright. The engine used to infer families
+  from a shared name prefix, so members had to be named alike.
+- `scope: none` exempts a variable from the "one value throughout" rule, for
+  things like paths that legitimately differ line to line.
+
+[`conftee/schemas/cisco-campus.yaml`](./conftee/schemas/cisco-campus.yaml) is the
+bundled schema, commented as the worked reference.
+
+### A non-Cisco example
+
+That fragment is from a real schema. Here is a web-server vocabulary end to end,
+sharing nothing with the Cisco one. The template:
+
+```
+~~~~~~~ web01 edge proxy ~~~~~~~
+! ########### UPSTREAM START ###########
+worker_processes {Workers}
+listen {Listen_port}
+server_name {Server_name}
+upstream backend {Backend_first} {Backend_mask}
+upstream backup {{Backend_first}+1} {Backend_mask}
+root {Root_path}
+! ########### UPSTREAM END ###########
+```
+
+A file carrying `server_name app.internal.local` produces:
+
+```json
+{
+  "web01": {
+    "UPSTREAM": [
+      ["value-mistach", {
+        "expected": "server_name {Server_name}",
+        "actual": "server_name app.internal.local",
+        "explanations": [
+          "app.internal.local for {Server_name} mismatches the format; unfortunately there is no known valid value for it"
+        ],
+        "line": 5
+      }]
+    ]
+  }
+}
+```
+
+Note what is being checked. `app.internal.local` is a perfectly well-formed
+hostname; it is wrong only against *this* schema's `hostname` type. Equally,
+`upstream backup` is verified to be exactly one address past `upstream backend`,
+which no amount of regex checking would catch.
+
+The full schema and both configs live in
+[`tests/test_schema_generality.py`](./tests/test_schema_generality.py), where
+they run on every test invocation, so this example cannot quietly stop working.
+
+## Running it standalone
+
+```
+python main.py
+```
+
+It lists the golden configs in `examples/golden/`, asks for one by name, and
+compares it against the same-named file in `examples/user/`. Given a name it
+cannot find, it falls back to a built-in pair rather than failing.
+
+The four bundled pairs run from a 3-line minimal case to a 73-line
+production-shaped config, and are described in
+[`examples/README.md`](./examples/README.md). To use your own, drop matching
+filenames into `examples/golden/` and `examples/user/`.
+
+Results: a JSON report printed to the terminal, and a table written to `out.csv`
+in the repository root.
+
+## Using it as a library
+
+```python
+from conftee.models.config_compare import ConfigCompare
+from conftee.models.extract import Extract
+from conftee.models.outline import Outline
+from conftee.models.gen_summary import GenSummary
+from conftee.utils.read_config import ReadConfig
+from conftee.utils import schema as schema_module
+
+schema = schema_module.load("./conftee/schemas/cisco-campus.yaml")
+
+golden = ReadConfig.read_config_from_txt("./examples/golden/test_file_one_section_bad.txt")
+user = ReadConfig.read_config_from_txt("./examples/user/test_file_one_section_bad.txt")
+
+extract_golden, extract_user = Extract._extract_structs(golden, user)
+outline_golden = Outline(golden, extract_golden, True)
+outline_user = Outline(user, extract_user, False)
+
+comparer = ConfigCompare(
+    (extract_golden, extract_user),
+    (outline_golden, outline_user),
+    schema,
+)
+results = comparer.calculate_diff()
+
+summary, diff_result_df, json_report = GenSummary(schema).generate_reports(
+    outline_golden, outline_user, results
+)
+print(json_report)
+
+# summary is a list of [count, label] pairs; the first is value mismatches.
+for count, label in summary:
+    print(f"{count} {label}")
+```
+
+That pair is deliberately non-conforming, so it reports `2 value mismatches`. In
+a gate, assert on the counts you care about:
+
+```python
+assert summary[0][0] == 0, f"Expected 0 {summary[0][1]}, but got {summary[0][0]}"
+```
+
+Both `ConfigCompare` and `GenSummary` take the schema. `schema_module.loads()`
+accepts the YAML as a string instead of a path.
+
+`calculate_diff()` also accepts `infra_prefixes`, a list of address prefixes to
+treat as infrastructure rather than user space when checking pool membership.
+
+The user side does not have to come from a file.
+`ReadConfig.read_config_from_response()` takes a `dict[str, list[str]]` of device
+name to config lines, as returned by an API, and converts it to the same internal
+form by synthesizing the device title lines.
+
+`generate_reports` returns three views of one result: `summary` (counts by
+category), `diff_result_df` (a pandas DataFrame, one row per line, carrying the
+per-line diff opcodes, the variables found, and their bound values), and
+`json_report` (the nested device/section structure shown above).
 
 ## Project history
 
-This tool was built for a university network operations simulation project and has since been
-retired; it is published here in a generalized, sanitized form.
+Built for a university network operations simulation project, since retired, and
+published here in a generalized, sanitized form.
 
 | Period | What happened |
 |---|---|
-| Aug 2023 – Dec 2023 | **v1** written by a previous student developer. Not included in this repository; see [docs/v1-retrospective.md](./docs/v1-retrospective.md) for its architecture and the lessons taken from it. |
-| Apr 2024 – Jul 2024 | **v2**, the code in this repository: a full rewrite into the layered design described in [docs/architecture.md](./docs/architecture.md). |
+| Aug 2023 - Dec 2023 | **v1** by a previous student developer. Not in this repository; see [docs/v1-retrospective.md](./docs/v1-retrospective.md) for its architecture and the lessons taken from it. |
+| Apr 2024 - Jul 2024 | **v2**, the code here: a full rewrite into the layered design in [docs/architecture.md](./docs/architecture.md). |
 | (undated) | Retired from production use; no longer deployed anywhere. |
-| Sep 2026 | Repurposing for public release begins: predecessor code removed, organization- and person-identifying sample data replaced, regression tests added. See [docs/repurposing-plan.md](./docs/repurposing-plan.md). |
+| Sep 2026 | Repurposing for public release: predecessor code removed, identifying sample data replaced, regression tests added, vocabulary moved from hardcoded constants into a schema. See [docs/repurposing-plan.md](./docs/repurposing-plan.md). |
 
-Both the version number (0.1.5) and the requirements list below date from that original development. The initial commit is when this repository was created for publication; it says nothing about how long the tool took to write.
+The version number (0.1.5) dates from the original development. The initial
+commit is when this repository was created for publication; it says nothing
+about how long the tool took to write.
 
-## Table of Contents
+***
 
-- [Client requirements](#client-requirements)
-- [Environment](#environment)
-- [How to Run the Tool (Local Standalone)](#how-to-run-the-tool-local-standalone)
-  - [1 Preparing the Config Files](#1-preparing-the-config-files)
-  - [2 Starting and Selecting the Golden Config](#2-starting-and-selecting-the-golden-config)
-  - [3 Selecting the User Config](#3-selecting-the-user-config)
-  - [4 Result](#4-result)
-- [How to Run the Tool (Integration)](#how-to-run-the-tool-integration)
-- [Addendum A (For devs): Extra documentation](#addendum-a-documentations-for-devs)
-- [Addendum B (For devs): Running the tests](#addendum-b-running-the-tests)
-- [Addendum C (For devs): Dev tools](#addendum-c-dev-tools-notes)
+#### Addendum A: Development setup
 
-## Client requirements:
-1. Compare user-defined configurations against a standard format (golden config).
-    - ✓ Validate the format of values for variables within "{}" in golden config, based on regular expressions.
-    - ✓ Identify variables that do not have corresponding values.
-    - ✓ Identify missing/extra lines in the user config.
-    - ✓ Identify device & section blocks in the user config, and missing/extra blocks.
-    - ✓ Identify inconsistent values for variables that should have the same value in one section or throughout a config.
-    - ✓ Evaluate numerical calculations on IP values, such as {Vrfglue_prefix_1st_IP}+1.
-    - ✓ Validate values for variables that should be in the same range, such as FWGLUE_Prefix with FWGLUE_Prefix_last_IP.
-    - ✓ Catch differences in non-variable commands.
-    - Detect structure relational anomalies, such as inconsistent numbers of downlink portchannels and downlink device blocks.
-2. An interactive way for a human reviewer to select input configs and view results (for standalone usage).
-3. A module interface for collaboration with outside callers (for integration).
-4. A readable error report for human review.
-
-## Environment
-Python 3.9 or newer. From the repository root:
+From the repository root:
 
 ```
 python -m venv .venv
@@ -60,140 +314,21 @@ Dependencies are declared as lower bounds rather than exact pins, so the install
 picks wheels built for whichever Python you are on. Pinning exact versions ties
 the project to the interpreter versions current when those versions shipped.
 
-- Note: Pandas is a real dependency of the current code: `differ_o`, `section_comparer`, `gen_summary` and `config_compare` all build and read DataFrames, so installing without it will not work. But that is a design choice, not a requirement of the problem. The DataFrame is used as the intermediate structure passed between those modules, and for readable output such as `out.csv`. What it is *not* used for is anything pandas is actually good at: there are no joins, group-bys or vectorized numerics in the pipeline, and every `.apply` is a row-wise Python lambda, which is a loop by another name. Any similarly shaped record structure plus hand-written access logic would produce identical results. Swapping it out is a contained refactor of those four modules, not a redesign.
-
-## How to Run the Tool (Local Standalone)
-
-### 1 Preparing the Config Files
-1. Double check golden configuration content syntaxes:
-    - File must contain at least one device title and one section title;
-    - File must start with a "~", though having some white spaces beore it is fine;
-    - Every device title line must start with at least 3 tildes `~~~` and match a format like "~~~ device name ~~~";
-    - Every section start line should start with exactly the string `! #` and match a format like "! # CONTEXT START #", but an end line is optional;
-    - Some device names need to be 100% accurate, for example "al1asa" in golden file and "al1asaX" in user file will cause a structure mismatch;
-    - Variables should be in curly brackets, like {User_prefix};
-    - Variable names are **case sensitive**, meaning if {User_prefix} works then {User_Prefix} would cause errors.
-    - Algebraic expressions should be in nested curly brackets, and operand can only be integers, like {{Vrfglue_prefix_1st_IP}+1}. <br>
-    Example:
-
-          ~~~~~~~ site01-hub1 ~~~~~
-          ! ########### VRF START ########### 
-            ip address {Vrfglue_prefix_1st_IP} {Vrfglue_prefix_netmask} standby {{Vrfglue_prefix_1st_IP}+1}
-    
-2. Open the folder where the Configuration Comparison Tool is located. 
-3. Locate two sub-folders: `./examples/golden` and `./examples/user`. 
-4. Create both configuration text files for comparison in the respective folders: <br>
-   Place golden configuration files inside examples/golden. <br>
-   Place user configuration files inside examples/user. <br>
-   Keep both file names as the same.
-
-### 2 Starting and Selecting the Golden Config
-1. Execute the `main.py` script.
-2. Upon running the tool, a list of available golden configuration files will be presented in your chosen CLI.
-3. Input the file name (with extension) of your chosen golden configuration file.
-- The four pairs offered are described in `examples/README.md`, smallest first.
-    Feel free to try others of your own, but there might be errors and/or failures.
-
-### 3 Selecting the User Config
-1. It will be searched using the same name in the examples/user folder. The program will run a test file pair if a user configuration file is not found.
-
-
-### 4 Result
-1. Wait for the tool to finish the procedure.
-2. Review the JSON report printed in the terminal.
-3. (Optional) Review the diff results dataframe (table) printed into an out.csv under the root folder. <br>
-
-
-## How to Run the Tool (Integration)
-
-*Note: Currently using `poetry` for packaging, but importer program does not have to have poetry in venv. This workflow might change later since this packaging method is still under probation.*
-
-Importing and usage steps:
-1. Install the module from a local build (`poetry build`, then `pip install` the produced wheel).
-2. Use `from conftee.models.config_compare import ConfigCompare` etc to import the main classes.
-3. Pass in user config with proper native Python data structures to the read_config_from_response(.) function.
-4. Pass in golden config from a txt file, and then call calculate_diff() on them. <br>
-    For example:
-      ```
-      import aiohttp, asyncio
-      from conftee.models.config_compare import ConfigCompare
-      from conftee.models.extract import Extract
-      from conftee.models.outline import Outline
-      from conftee.models.gen_summary import GenSummary
-      from conftee.utils.read_config import ReadConfig
-      ...
-
-      body, status = await get(path="/api/v1/view/network/biss01/configs", auth=ADMIN_JWT)
-
-      # This should be a dict[str, list[str]]
-      user_json_obj = body['results'][0]
-      user_content = ReadConfig.read_config_from_response(user_json_obj)
-      golden_content = ReadConfig.read_config_from_txt("./examples/golden/sample_golden.txt")
-
-      extractGolden, extractUser = Extract._extract_structs(golden_content, user_content)
-      extractData = (extractGolden, extractUser)
-
-      outlineGolden = Outline(golden_content, extractGolden, True)
-      outlineUser = Outline(user_content, extractUser, False)
-      outlineData = (outlineGolden, outlineUser)
-
-      comparer = ConfigCompare(extractData, outlineData)
-      comparer_results = comparer.calculate_diff()
-
-      summ_generator = GenSummary()
-      summary, diff_result_df, json_report = summ_generator.generate_reports(
-        outlineGolden,
-        outlineUser,
-        comparer_results,
-        )
-      print(json_report)
-
-      # In summary, The 1st child list's 1st element is value mismatch count
-      assert summary[0][0] == 0, f"Expected 0 {summary[0][1]}, but got {summary[0][0]}"
-      ```
-    *Note: The above code is for rough demonstration, it might not actually work.*
-    
-    The output *json_report* would be in this format:
-      ```
-      {
-      'site01-hub1': {
-                'vrf': [
-                          {
-                            'mismatch': {
-                                'expected': 'ip VRF NOVA01-VPN',
-                                'actual': 'ip VRF NOVA01-VPN-1'
-                            }
-                          }
-                        ]
-                  }
-      'bldg07-sw01-32': {
-                ...
-                  }
-      }
-      ```
-    The output *diff_result_df* would be in this format:
-    | Line num 1 | Line in 1                                                        | Line num 2 | Line in 2                                | diff_result                                             | variables                                              | is expression                      | values                             | Value mistaches |
-    |------------|------------------------------------------------------------------|------------|------------------------------------------|---------------------------------------------------------|--------------------------------------------------------|------------------------------------|------------------------------------|-----------------|
-    | 1          | ~~~~~~~~~  al1asa FW context ~~~~~~~~~~                          | 1          | ~~~~~~~~~  al1asa FW context ~~~~~~~~~~  | ('equal-device-title', 0, 0, 0, 72)                     | []                                                     | []                                 | []                                 | 0               |
-    | ...        | ...                                                              | ...        | ...                                      | ...                                                     | ...                                                    | ...                                | ...                                | ...             |
-    | 244        |   description {FW_context_name}-FWGLUE                           | 243        |   description NOVA22-FWGLUE              | [('equal', 0, 14, 0, 14), ('replace-var', 14, 31...     | ['FW_context_name']                                    | [False]                            | ['NOVA2']                          | 1               |
-    | 245        |   mtu 9216                                                       | 244        |   mtu 9216                               | [('equal', 0, 10, 0, 10), ('Line num 1', 245, 0, 0, 0)] | []                                                     | []                                 | []                                 | 0               |
-    | 246        |   ip address {{FWGLUE_Prefix_last_IP}-1} {FWGLUE_Prefix_netmask} | 245        |   ip address 10.45.54.29 255.255.255.248 | [('equal', 0, 13, 0, 13), ('replace-var', 13, 40,...    | ['{FWGLUE_Prefix_last_IP}-1', 'FWGLUE_Prefix_netmask'] | ['{FWGLUE_Prefix_last_IP}', False] | ['10.45.54.29', '255.255.255.248'] | 0               |
-    | 247        |   standby ip {FWGLUE_Prefix_last_IP}                             | 246        |   standby ip 10.45.54.30                 | [('equal', 0, 13, 0, 13), ('replace-var', 13, 36...     | ['FWGLUE_Prefix_last_IP']                              | [False]                            | ['10.45.54.30']                    | 0               |
-    | 248        |   standby preempt                                                | 247        |   standby preempt                        | [('equal', 0, 17, 0, 17), ('Line num 1', 248, 0, 0, 0)] | []                                                     | []                                 | []                                 | 0               |
-    | ...        | ...                                                              | ...        | ...                                      | ...                                                     | ...                                                    | ...                                | ...                                | ...             |
-
-
-***
-#### Addendum A: Documentations for Devs
-See [docs/v1-retrospective.md](./docs/v1-retrospective.md) for an analysis of the
-predecessor implementation and the reasons for the rewrite.
-See [docs/architecture.md](./docs/architecture.md) for the class/pipeline diagram.
+**On pandas.** It is a real dependency of the current code: `differ_o`,
+`section_comparer`, `gen_summary` and `config_compare` all build and read
+DataFrames, so installing without it will not work. But that is a design choice,
+not a requirement of the problem. The DataFrame is the intermediate structure
+passed between those modules, and the source of readable output such as
+`out.csv`. What it is *not* used for is anything pandas is actually good at:
+there are no joins, group-bys or vectorized numerics in the pipeline, and every
+`.apply` is a row-wise Python lambda, which is a loop by another name. Any
+similarly shaped record structure plus hand-written access logic would produce
+identical results. Swapping it out is a contained refactor of those four
+modules, not a redesign.
 
 #### Addendum B: Running the tests
 
-From a virtual environment with the project's dependencies installed (see
-[Environment](#environment)), add pytest and run it:
+From that environment, add pytest and run it:
 
 ```
 python -m pip install pytest
@@ -208,39 +343,47 @@ The package does not need to be installed first. `pyproject.toml` sets
 `pythonpath = ["."]`, which puts the repository root on `sys.path` so
 `import conftee` resolves during development.
 
-There are two suites, and they answer different questions.
+The suites answer different questions.
 
 `tests/test_regression.py` runs all 63 golden/user config pairs through the full
 pipeline and compares the result against recorded summary counts and report
-hashes in `tests/fixtures/baseline.json`. The baseline was generated from the
-engine's own output, so these tests assert that behavior has not *changed*, not
-that it is correct. A failure here means something shifted; investigate the
-change rather than regenerating the baseline.
+hashes in `tests/fixtures/baseline.json`. The corpus spans two roots: four pairs
+sit in `examples/` as documentation and the rest in `tests/fixtures/corpus/`. The
+baseline was generated from the engine's own output, so these tests assert that
+behavior has not *changed*, not that it is correct. A failure means something
+shifted; investigate the change rather than regenerating the baseline.
 
-The same file also holds `test_no_identifying_strings`, which scans the sample
-configs and `docs/` for identifiers that were removed when this repository was
-published. It stores them as salted hashes rather than plaintext, so the check
-can run without the names being present.
+The same file holds `test_no_identifying_strings`, which walks the sample
+configs, `resources/` and `docs/` for identifiers removed when this repository
+was published. It stores them as salted hashes rather than plaintext, so the
+check runs without the names being present, and `test_guard_itself_works`
+brute-forces a sample to prove the check actually fires.
 
-`tests/test_schema_equivalence.py` covers the schema work in progress. It pins
+`tests/test_schema_generality.py` runs the foreign vocabulary described above.
+
+`tests/test_schema_equivalence.py` is scaffolding. It pins
 `conftee/schemas/cisco-campus.yaml` against the hardcoded constants it was
-transcribed from, so a mistake in the schema fails with the name of the offending
-variable instead of showing up later as a changed report. It is scaffolding: once
-the engine reads the schema and the constants modules are gone, this file goes
-with them. See [docs/repurposing-plan.md](./docs/repurposing-plan.md).
+transcribed from, so a transcription mistake fails with the name of the
+offending variable rather than surfacing later as a changed report. Once the
+retired constants are deleted, this file goes with them. See
+[docs/repurposing-plan.md](./docs/repurposing-plan.md).
 
 Useful variations:
 
 ```
 python -m pytest tests/test_regression.py   # one suite
-python -m pytest -k schema                 # tests matching a name
-python -m pytest -x                        # stop at the first failure
-python -m pytest -q                        # one line per file instead of per test
+python -m pytest -k schema                  # tests matching a name
+python -m pytest -x                         # stop at the first failure
+python -m pytest -q                         # one line per file instead of per test
 ```
 
 #### Addendum C: Dev tools notes
-There are some independent tool scripts in ./dev_tools folder, for one past dev's personal use. So delete them as needed.
 
-1. print_regexes_from_client.py: Read a txt file containing regexes from the client and print them as a prettified Python dict, for pasting into the conftee\utils\constants.py. Just to save some manual formatting time.
+`./dev_tools` holds standalone scripts kept from one past developer's own use.
+Delete them as needed.
 
-3. simple_difflib_run.py: Some simple run using the built-in difflib library and the slighly overriden Diiffer O class in this project, to show their differences.
+1. `print_regexes_from_client.py`: reads a txt file of regexes and prints them as
+   a prettified Python dict, to save manual formatting when pasting into
+   `conftee/utils/constants.py`.
+2. `simple_difflib_run.py`: runs the built-in `difflib` alongside this project's
+   slightly overridden Differ O class, to show the difference between them.
