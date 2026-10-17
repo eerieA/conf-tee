@@ -291,8 +291,13 @@ class LineAnalyzer:
                 # If has variables, append them to the list, and take note of whether there are IPv4 variables
                 variables_idx.extend(bracket_pairs)
                 for var in var_list:
-                    if var[1 : len(var) - 1] in self.ipv4_variables:
-                        has_ipv4_g = True
+                    # A plain variable is "{name}", but an expression is
+                    # "{{name}-2}", so stripping one character off each end
+                    # leaves "{name}-2" and never matches. Match the variable
+                    # token itself to cover both forms.
+                    for name in re.findall(VARIABLE_REGEX, var):
+                        if name[1:-1] in self.ipv4_variables:
+                            has_ipv4_g = True
 
         return variables_idx, has_ipv4_g
 

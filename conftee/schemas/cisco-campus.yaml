@@ -56,9 +56,10 @@ types:
     regex: '[A-Z]{4}\d{2}-[\w-]+'
   net_type_6_vlan_name:
     regex: '[^\d\-=._][\w\-=._]*'
+  # A fixed literal, not a computed address: no expression ever does arithmetic
+  # on it, so it declares no arithmetic engine.
   netmask_29:
     regex: '255.255.255.248'
-    arithmetic: ipv4
   ospf_area_num:
     regex: '(?:\d|[1-9]\d{1,2})'
     arithmetic: int
@@ -70,22 +71,20 @@ types:
   vlan_id:
     regex: '[1-9]\d{0,3}'
     arithmetic: int
-  vlan_id_no_arithmetic:
-    regex: '[1-9]\d{0,3}'
   vlan_name:
     regex: '[A-Z]{4}\d{2}-[\w-]+=[A-Z]{4}-[^_\s]+$'
   vrf_name:
     regex: '[A-Z]{4}-[^\s]+'
+  # A fixed literal; see netmask_29 above.
   wildcard_29:
     regex: '0.0.0.7'
-    arithmetic: ipv4
 
 # The vocabulary. `scope` is where a value must stay consistent; `file` is the
 # default and is omitted below. `role` carries meaning no regex can express.
 variables:
   Vlan_ID_fwglue: vlan_id
   Vlan_ID_vrfglue: vlan_id
-  Vlan_ID_vpnglue: vlan_id_no_arithmetic
+  Vlan_ID_vpnglue: vlan_id
   Vlan_ID_user:
     type: vlan_id
     pool: user_vlan

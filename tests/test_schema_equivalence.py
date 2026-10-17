@@ -46,22 +46,50 @@ def test_regex_matches(schema, name):
     assert schema.regex_for(name).pattern == WORD_TYPE_REGEXES[name]
 
 
+# Two deliberate deviations from the constants, the only places this file does
+# not pin the schema to old behavior. Both were latent bugs the transcription
+# surfaced, preserved through the migration so it could be proven faithful, then
+# fixed once it was. See docs/repurposing-plan.md.
+#
+# 1. Vlan_ID_vpnglue was missing from INT_VARIABLES while its three siblings
+#    were present, so `{{Vlan_ID_vpnglue}+1}` raised instead of evaluating. It
+#    now has int arithmetic, hence the additions below.
+# 2. These six carry a fixed literal mask (255.255.255.248 or 0.0.0.7), not a
+#    computed address, so declaring ipv4 arithmetic on them was meaningless.
+#    Dropping it also removes them from the set LineAnalyzer uses to decide
+#    whether a golden line contains an IPv4 variable.
+LITERAL_MASK_VARIABLES = {
+    "Vrfglue_prefix_netmask",
+    "Inv_Vrfglue_prefix_netmask",
+    "FWGLUE_Prefix_netmask",
+    "Inv_FWGLUE_Prefix_netmask",
+    "Vpnglue_prefix_netmask",
+    "Inv_Vpnglue_prefix_netmask",
+}
+
+
 def test_ipv4_arithmetic_membership_matches(schema):
-    assert schema.variables_with_arithmetic("ipv4") == set(IPV4_VARIABLES)
+    assert schema.variables_with_arithmetic("ipv4") == set(IPV4_VARIABLES) - LITERAL_MASK_VARIABLES
 
 
 def test_int_arithmetic_membership_matches(schema):
-    assert schema.variables_with_arithmetic("int") == set(INT_VARIABLES)
+    assert schema.variables_with_arithmetic("int") == set(INT_VARIABLES) | {
+        "Vlan_ID_vpnglue"
+    }
 
 
 def test_variables_without_arithmetic_match(schema):
-    """Variables in neither arithmetic list stay in neither.
+    """Variables in neither arithmetic list stay in neither, bar the fixes below.
 
     Guards the direction the other two tests cannot: granting arithmetic to a
     variable that lacks it today would make a previously-raising expression
     silently evaluate.
     """
-    expected = set(WORD_TYPE_REGEXES) - set(IPV4_VARIABLES) - set(INT_VARIABLES)
+    expected = (
+        (set(WORD_TYPE_REGEXES) - set(IPV4_VARIABLES) - set(INT_VARIABLES))
+        - {"Vlan_ID_vpnglue"}
+        | LITERAL_MASK_VARIABLES
+    )
     assert schema.variables_with_arithmetic(None) == expected
 
 

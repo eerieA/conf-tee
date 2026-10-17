@@ -249,17 +249,40 @@ built-in default". Note also that `INFRA_VLAN_POOL` / `USER_VLAN_POOL` are
 computed at import time (`diff_helpers.py:39`), so this is module-level state a
 threaded schema object has to displace.
 
-**A latent bug the transcription surfaced.** Preserved as-is in the schema,
-because the equivalence test's job is to prove the schema matches today's
-behavior, bugs included. Fixing it is a separate, deliberate change:
+**Latent bugs the transcription surfaced.** Preserved as-is through the
+migration, because the equivalence test's job was to prove the schema matched
+then-current behavior, bugs included. All three are now fixed, as a separate and
+deliberate change made after the migration was proven faithful. The two
+deviations from the constants are marked in `tests/test_schema_equivalence.py`
+as named exceptions, so that file still pins everything else:
 
-- `Vlan_ID_vpnglue` is absent from `INT_VARIABLES` while its three siblings
-  (`Vlan_ID_fwglue`, `Vlan_ID_vrfglue`, `Vlan_ID_user`) are present, despite
-  sharing their regex. Writing `{{Vlan_ID_vpnglue}+1}` therefore raises
+- `Vlan_ID_vpnglue` was absent from `INT_VARIABLES` while its three siblings
+  (`Vlan_ID_fwglue`, `Vlan_ID_vrfglue`, `Vlan_ID_user`) were present, despite
+  sharing their regex. Writing `{{Vlan_ID_vpnglue}+1}` therefore raised
   `ValueError` from `_evaluate_expression` rather than evaluating. No corpus file
-  uses a VLAN in an expression, so nothing catches it. The schema encodes this as
-  a distinct `vlan_id_no_arithmetic` type, which at least makes the anomaly
-  visible rather than hiding it in a membership list.
+  uses a VLAN in an expression, so nothing caught it. The schema first encoded
+  this as a distinct `vlan_id_no_arithmetic` type to make the anomaly visible;
+  the fix points the variable at `vlan_id` and drops that type, now unreferenced.
+- `netmask_29` and `wildcard_29` carried `arithmetic: ipv4` despite being fixed
+  literals (`255.255.255.248`, `0.0.0.7`) that nothing computes on. The
+  declaration is now dropped from both.
+- Fixing the one above exposed a third bug that it had been masking.
+  `gather_variables` decides whether a golden line contains an IPv4 variable by
+  testing `var[1:-1]`, which works for a plain `{name}` but not for an
+  expression `{{name}-2}`, where it leaves `{name}-2` and never matches. So
+  expression variables never set `has_ipv4_g`, and the flag was only true on
+  those lines because a netmask variable sat beside them wearing the wrong
+  arithmetic. The fix matches `VARIABLE_REGEX` inside the token, covering both
+  forms.
+
+  The two interact, so they had to be fixed together: dropping the arithmetic
+  alone turned the flag off on six golden lines, changing how `SequenceMatcher`
+  aligns them. Fixed as a pair, the flag is restored on those six and newly
+  turned on for 8 lines across the corpus where an expression sits beside a
+  hardcoded mask rather than a variable one, which is bug three having been live
+  and undetected there. Every flip is in the safe direction (off to on), and all
+  63 reports are byte-identical, so the extra masking changes alignment without
+  changing any verdict.
 
 **Environment faults found while setting the suite up to run.** None are schema
 work; they were blocking anyone from running the tests at all, so they were fixed
