@@ -609,10 +609,13 @@ paths twice has the same cost, so the moves come first and the prose follows.
       gone. Last, so it describes the layout the items above leave behind rather
       than the one they found.
 
-### Phase 3a: retire the migration scaffolding
+### Phase 3a: retire dead code
 
 Separate from the items above because it is cleanup rather than presentation,
-and because it is deliberately sequenced after them.
+and because it is deliberately sequenced after them. Two kinds of dead code,
+retired together because the commits are independent and small: scaffolding
+this migration put up and is now done with, and features that were already
+dead when the repository was published.
 
 - [ ] Retire `tests/test_schema_equivalence.py` together with the vocabulary
       half of `conftee/utils/constants.py` (`WORD_TYPE_REGEXES`,
@@ -626,6 +629,41 @@ and because it is deliberately sequenced after them.
       what the working tool said, and Phase 3 moves the corpus and
       `sample_corpus.py` underneath it. Leaving it in place through that churn
       costs nothing and keeps a second opinion available while files move.
+
+- [ ] Retire the dead HTML output path. `_generate_html`
+      (`conftee/models/gen_summary.py:651`) has a body that is entirely one
+      commented-out string literal, and nothing calls it. Its own docstring
+      says the HTML visualization "is currently broken and not in use because
+      of both requirement changes and implementation changes". With it go
+      `OUTPUT_DIR` and `JINJA_TEMPLATE_DIR` (`:44`, `:45`), whose only
+      references are inside that commented block.
+
+      The cluster is larger than the function, and the parts should go in one
+      commit because each is dead only while the others are:
+
+      - `conftee/html_templates/main_diff_check.html` and `styles.css`. Named
+        nowhere but inside the dead block, and they currently ship in the wheel.
+      - The `Jinja2` dependency. Not imported anywhere in the package: the
+        `Environment` and `FileSystemLoader` calls at `:668` are commented out,
+        and so is the `pathlib` use at `:666`, which no live import even
+        satisfies.
+      - The `Mako` dependency, and `replace_device_titles_in_golden`
+        (`conftee/utils/helpers.py:186`), which is its only user and is itself
+        uncalled. It is a separate feature from the HTML output but has the
+        same status and the same one-line fix.
+
+      Confirmed rather than assumed: with `jinja2` and `mako` both made
+      unimportable, the full suite still passes 254 tests. Two of the five
+      declared runtime dependencies are therefore unused, which a reader
+      installing the package pays for in install size and supply-chain surface.
+
+      Deferred to this phase rather than done when it was spotted, because it
+      is unrelated to the item that surfaced it: the generated artifact
+      `conftee/html_output/main_diff_check_result.html` was untracked and
+      ignored on its own, which was enough to stop it shipping. Removing live
+      code is a larger change than fixing an ignore rule and belongs with the
+      other retirements. Verify: suite passes, the wheel no longer carries
+      `html_templates/`, and `Requires-Dist` lists three dependencies.
 
 ### Phase 4: optional polish
 
