@@ -3,11 +3,9 @@ from enum import Enum
 from typing import Union
 from collections import Counter
 
-from ..models.constants_singleton import ConstantsSingleton
 from ..models.line_analyzer import LineAnalyzer
 from .helpers import ipv4_in_range, calc_ipv4_range, calc_ipv4_algebra, vlan_num_in_range
 
-from .constants import SUBNET_CLUSTERS
 
 
 def _consistency_scopes(schema):
@@ -426,6 +424,16 @@ def _value_is_wrong_sourced(var: str, val: str, correct_values: dict, section_na
     Description:
         Determine if a value for a variable is in correct ranges or not. Correct ranges currently include
         globally defined pools and subnet ranges locally calculated from info in a config.
+
+        Subnet family membership comes from the schema's declared groups, so a
+        variable is only treated as part of a subnet when the schema says it is.
+
+        The loop below picks the first member whose correct value is a pool-legal
+        IPv4 address and treats it as the subnet's base, so which member comes
+        first could in principle matter. It does not: calc_ipv4_range masks the
+        address down to the network, so every host inside the subnet yields the
+        same range. Member order is therefore free to differ from the order the
+        old name-prefix clustering happened to produce.
     """
     # A correctly sourced value should be:  1. From correct pool, if applicable
     #                                       2. Be in the correct subnet, if applicable
@@ -434,15 +442,12 @@ def _value_is_wrong_sourced(var: str, val: str, correct_values: dict, section_na
     wrong_source_type, correct_source = _value_is_in_pool(var, val, section_name, schema)
 
     # Here is to verify restriction 2; restriction 2 takes precedence over restriction 1
-    cs = ConstantsSingleton.get_instance()
-    cs_dict = ConstantsSingleton.get_clusters_dict()
-    cluster = cs.find(var)
-    is_var_a_netmask = "netmask" in var
-    if cluster in SUBNET_CLUSTERS and not is_var_a_netmask:
-        # If variable is in a subnet cluster, and it is not a netmask, the value should be in this subnet's range
+    group = schema.group_of(var)
+    if group and not schema.is_netmask(var):
+        # If variable is in a subnet group, and it is not a netmask, the value should be in this subnet's range
         tmp_val = ""
-        for cluster_var in cs_dict[cluster]:
-            if "netmask" not in cluster_var:
+        for cluster_var in group.members:
+            if not schema.is_netmask(cluster_var):
                 try:
                     tmp_val = str(ipaddress.IPv4Address(correct_values[cluster_var]))
                     tmp_wrong_pool_type, tmp_correct_source = _value_is_in_pool(cluster_var, tmp_val, section_name, schema)
@@ -467,8 +472,8 @@ def _value_is_wrong_sourced(var: str, val: str, correct_values: dict, section_na
             try:
                 # Search for the variable name for mask in this clusters
                 mask_var = ""
-                for cluster_var in cs_dict[cluster]:
-                    if "netmask" in cluster_var:
+                for cluster_var in group.members:
+                    if schema.is_netmask(cluster_var):
                         mask_var = cluster_var
                         break
                 
@@ -485,7 +490,7 @@ def _value_is_wrong_sourced(var: str, val: str, correct_values: dict, section_na
                 # Then determine the error type based on the subnet range
                 if not ipv4_in_range(ip=val, start_ip=tmp_subnet_range[0], end_ip=tmp_subnet_range[1]):
                     # If the value is not in the range at all, then simply report out of range error
-                    wrong_source_type = cluster + "-subnet"
+                    wrong_source_type = group.name + "-subnet"
                     correct_source = tmp_subnet_range
                 elif dm_type:
                     # If the value is in the range, then further check if it is the 1st or last IP, if applicable

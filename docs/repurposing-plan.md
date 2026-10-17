@@ -359,14 +359,29 @@ omitting a schema is now a `TypeError` at every seam rather than a silent fallba
       four infra prefix variables and describes the sample corpus, so it now lives
       in `conftee/sample_corpus.py` and both entry points pass it explicitly. The
       silent fallback is gone, matching the schema argument above.
-- [ ] `_value_is_wrong_sourced`: subnet membership from `schema.groups` rather than
-      `ConstantsSingleton` clusters and `SUBNET_CLUSTERS` (`:439`-`:443`), and
-      `schema.is_netmask` rather than the `"netmask" in var` substring test. This
-      is the prerequisite the list previously omitted: the function is the last
-      reader of `ConstantsSingleton`, so the deletion below cannot happen before
-      it. Like the scope lists, the clusters assertion in the equivalence test has
-      to become inline data at the same time, or it would assert the schema
-      against itself.
+- [x] `_value_is_wrong_sourced`: subnet membership now comes from
+      `schema.group_of` rather than `ConstantsSingleton` clusters and
+      `SUBNET_CLUSTERS`, and `schema.is_netmask` replaces the `"netmask" in var`
+      substring test, in both the member scan and the mask lookup. The finding
+      type is built from the group's name, so it follows the schema rather than a
+      recovered cluster name. This was the prerequisite the list previously
+      omitted: the function was the last reader of `ConstantsSingleton`, which is
+      now unimported anywhere in the package. The clusters assertion in the
+      equivalence test became inline data at the same time, as the scope lists and
+      pool ranges did, so it compares the schema against the old behavior instead
+      of against itself.
+
+      Worth recording, because it looks like a regression and is not: the schema
+      lists group members alphabetically, while the union-find produced them in
+      `WORD_TYPE_REGEXES` order. The member scan stops at the first member whose
+      correct value is a pool-legal IPv4 address and treats it as the subnet base,
+      so the two orders pick a different address on 286 of 420 in-group calls
+      across the corpus (`user_prefix` starts at `User_prefix`, the network
+      address, under the old order and at `User_Prefix_last_IP`, a host inside it,
+      under the new one). Every report is nonetheless byte-identical, because
+      `calc_ipv4_range` masks the base down to the network: any host in the subnet
+      yields the same range. Order is therefore not part of the contract, and the
+      equivalence test compares membership as sets to say so.
 - [ ] Delete `models/constants_singleton.py` (`ConstantsSingleton`, `DisjointSet`,
       `determine_cluster`) and the scattered string-inference tests.
 - [ ] Delete `utils/constants.api.py` and `utils/constants.desired.py`, which

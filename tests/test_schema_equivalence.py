@@ -13,14 +13,12 @@ import os
 
 import pytest
 
-from conftee.models.constants_singleton import ConstantsSingleton
 from conftee.utils import schema as schema_module
 from conftee.utils.constants import (
     INT_VARIABLES,
     IPV4_VARIABLES,
     IPV4_VARIABLES_INFRA,
     IPV4_VARIABLES_USER,
-    SUBNET_CLUSTERS,
     WORD_TYPE_REGEXES,
 )
 
@@ -103,17 +101,46 @@ def test_netmask_role_matches_substring_test(schema):
     assert actual == expected
 
 
+# The four subnet families the union-find produced from shared name prefixes,
+# kept verbatim for the same reason as the scope lists and pool ranges above:
+# once the engine reads groups from the schema, deriving these from the schema
+# would make the assertion below compare the schema against itself.
+SUBNET_FAMILIES = {
+    "user_prefix": {"User_prefix", "User_prefix_netmask", "User_Prefix_last_IP"},
+    "vrfglue_prefix": {
+        "Vrfglue_prefix",
+        "Vrfglue_prefix_1st_IP",
+        "Vrfglue_prefix_last_IP",
+        "Vrfglue_prefix_netmask",
+    },
+    "fwglue_prefix": {
+        "FWGLUE_Prefix",
+        "FWGLUE_Prefix_1st_IP",
+        "FWGLUE_Prefix_last_IP",
+        "FWGLUE_Prefix_netmask",
+    },
+    "vpnglue_prefix": {
+        "Vpnglue_prefix",
+        "Vpnglue_prefix_1st_IP",
+        "Vpnglue_prefix_last_IP",
+        "Vpnglue_prefix_netmask",
+    },
+}
+
+
 def test_subnet_groups_match_disjoint_set(schema):
     """Declared groups reproduce the union-find clusters, for subnet families.
 
-    Only the SUBNET_CLUSTERS entries matter: DisjointSet buckets every variable
-    by name prefix, but `_value_is_in_subnet` acts on a cluster only when it is
-    one of those four.
+    Only the four subnet families matter: DisjointSet bucketed every variable by
+    name prefix, but the subnet check acted on a cluster only when it was one of
+    these.
+
+    Membership is compared as sets. Order is not part of the contract: the
+    consumer masks whichever member it picks down to the network address, so any
+    member of the family yields the same subnet range.
     """
-    clusters = ConstantsSingleton.get_clusters_dict()
-    expected = {c: set(clusters[c]) for c in SUBNET_CLUSTERS if c in clusters}
     actual = {name: set(g.members) for name, g in schema.groups.items()}
-    assert actual == expected
+    assert actual == SUBNET_FAMILIES
 
 
 def test_pool_membership_matches(schema):
