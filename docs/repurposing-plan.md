@@ -2,7 +2,7 @@
 
 **Status:** in progress
 **Repurposing started:** 2026-09-11
-**Last updated:** 2026-09-12
+**Last updated:** 2026-10-17
 
 **Prior history:** v1 Aug 2023 – Dec 2023 (previous developer, not included here);
 v2 Apr 2024 – Jul 2024 (the code in this repository); retired from production some
@@ -170,9 +170,11 @@ contains only sanitized content, with no history to scrub.
 - [x] **Added a remote and pushed.** `origin` is a private GitHub repo; two
       commits so far. Reviewed as rendered there before any public flip.
 - [x] *Optional:* `.gitattributes` with `* text=auto eol=lf` to avoid CRLF churn.
-      Was easier before the first commit; still worth adding, now with a
-      `--renormalize` pass.
-- [ ] Flip the remote to public once Phase 2 lands.
+      Added after the first commits rather than before, so it needed a
+      `--renormalize` pass. That pass staged nothing: every text file was already
+      LF in the index, and only the working tree held CRLF, from `core.autocrlf`
+      converting on checkout. The whole change is the one-line file.
+- [x] Flip the remote to public once Phase 2 lands.
 
 **Pre-flight checks passed** (re-run if the staged set changes):
 169 files staged; no ignored-category files; 0 identifier hits scanning *staged
@@ -463,7 +465,8 @@ omitting a schema is now a `TypeError` at every seam rather than a silent fallba
       the schema has fully replaced; no engine module reads them, but
       `tests/test_schema_equivalence.py` does, and deleting them would gut the
       test whose job is pinning the schema against them. They retire together
-      with that test, once the regression suite is the sole pin. `SUBNET_CLUSTERS`
+      with that test, once the regression suite is the sole pin; scheduled as
+      Phase 3a. `SUBNET_CLUSTERS`
       has no reader at all, kept only as the source the test's subnet families
       were derived from. The module docstring now records this split, replacing a
       header that described the file as being for API integration tests and
@@ -480,32 +483,72 @@ omitting a schema is now a `TypeError` at every seam rather than a silent fallba
 
 ### Phase 3: make it presentable
 
-- [ ] Rewrite `README.md` around the reverse-template framing rather than
-      "compare configuration files". Lead with what the tool uniquely does.
-- [ ] Add a worked non-Cisco example (nginx or systemd) to demonstrate
-      generality. Without one, the general framing is untested.
-      Partly done: `tests/test_schema_generality.py` runs an nginx-flavoured
-      vocabulary end to end, sharing no variable, type, pool or regex with the
-      bundled schema. It is a test rather than user-facing documentation, so
-      the README example is still owed, but the claim is now executable.
-- [ ] Reorganize the corpus: a few representative pairs in `examples/` as
-      user-facing documentation, the rest to `tests/fixtures/corpus/`.
+Ordered so that files move before anything cites them. The README is the most
+valuable item here and the obvious one to reach for first, but it will reference
+example configs by path, and the reorganization below changes those paths. The
+corpus item already carries a note about not moving files twice; writing their
+paths twice has the same cost, so the moves come first and the prose follows.
+
+- [ ] **Reorganize the corpus** into a few representative pairs in `examples/`
+      as user-facing documentation, the rest in `tests/fixtures/corpus/`.
       *(Deferred from Phase 0 to avoid moving files twice.)*
       Move `conftee/sample_corpus.py` with it. The prefixes it holds describe the
       sample configs, not the engine, and they sit in the package today only
       because `main.py` reads them at run time. Left there for now so this
       reorganization does not have to undo an import into `tests/`.
-- [ ] Verify packaging: confirm corpus files are excluded from the built wheel,
-      and that `conftee/schemas/*.yaml` is *included*. Poetry's
+      Verify: the full suite passes and `tests/fixtures/baseline.json` stays
+      byte-identical. The corpus is the regression coverage, so a move that
+      changes a single report SHA is a move that broke something.
+- [ ] **Verify packaging.** Confirm corpus files are excluded from the built
+      wheel, and that `conftee/schemas/*.yaml` is *included*. Poetry's
       `packages = [{ include = "conftee" }]` takes `*.py` by default, so the
       bundled schema needs an explicit include rule or it ships missing.
       `sample_corpus.py` is a `*.py` file inside the package, so it ships by
       default and would put one network's addresses in every install. It needs
-      excluding, or to have moved out of `conftee/` by then.
+      excluding, or to have moved out of `conftee/` by then, which the item
+      above may already have settled. Placed here, directly after the moves,
+      because that is when the answer is cheapest to check and the layout is
+      still fresh. Verify: build the wheel and list its contents.
+- [ ] **Rewrite `README.md`** around the reverse-template framing rather than
+      "compare configuration files". Lead with what the tool uniquely does.
+      It can now cite `examples/` paths that will not move again.
+      Include a short statement of what the tool does *not* do yet: a foreign
+      vocabulary works and a foreign block syntax does not. See the limits
+      recorded in section 3 under Phase 2. A visitor who needs nginx block
+      syntax should learn that in ten seconds rather than after an hour, and the
+      repo is public now, so that cost is being paid by real readers.
+- [ ] **Add a worked non-Cisco example** (nginx or systemd) to demonstrate
+      generality. Without one, the general framing is untested.
+      Partly done: `tests/test_schema_generality.py` runs an nginx-flavoured
+      vocabulary end to end, sharing no variable, type, pool or regex with the
+      bundled schema. It is a test rather than user-facing documentation, so
+      the README example is still owed, but the claim is now executable.
+      Likely merges with the item above, as a README section or a file in
+      `examples/` that the README points at, lifted from the test's fixtures.
 - [x] Unpin over-specific dependency versions. Done ahead of schedule during
       Phase 2, because the exact `==` pins were blocking the test suite from
       installing at all; see the environment faults noted there.
-- [ ] Update `docs/architecture.md` once `constants_singleton.py` is gone.
+- [ ] **Update `docs/architecture.md`** now that `constants_singleton.py` is
+      gone. Last, so it describes the layout the items above leave behind rather
+      than the one they found.
+
+### Phase 3a: retire the migration scaffolding
+
+Separate from the items above because it is cleanup rather than presentation,
+and because it is deliberately sequenced after them.
+
+- [ ] Retire `tests/test_schema_equivalence.py` together with the vocabulary
+      half of `conftee/utils/constants.py` (`WORD_TYPE_REGEXES`,
+      `IPV4_VARIABLES*`, `INT_VARIABLES`, `SUBNET_CLUSTERS`), as one commit.
+      They retire together or not at all: the constants have no engine reader
+      left, and the test exists to pin the schema against them, so removing
+      either alone leaves the other pointless. The syntax half of
+      `constants.py` stays; it has real readers.
+      Deferred until after the reorganization above, not before, because the
+      test is the last remaining check that the Cisco schema's regexes still say
+      what the working tool said, and Phase 3 moves the corpus and
+      `sample_corpus.py` underneath it. Leaving it in place through that churn
+      costs nothing and keeps a second opinion available while files move.
 
 ### Phase 4: optional polish
 
