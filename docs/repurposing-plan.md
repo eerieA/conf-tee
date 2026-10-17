@@ -169,7 +169,7 @@ contains only sanitized content, with no history to scrub.
 - [x] **Set git identity.**
 - [x] **Added a remote and pushed.** `origin` is a private GitHub repo; two
       commits so far. Reviewed as rendered there before any public flip.
-- [ ] *Optional:* `.gitattributes` with `* text=auto eol=lf` to avoid CRLF churn.
+- [x] *Optional:* `.gitattributes` with `* text=auto eol=lf` to avoid CRLF churn.
       Was easier before the first commit; still worth adding, now with a
       `--renormalize` pass.
 - [ ] Flip the remote to public once Phase 2 lands.
