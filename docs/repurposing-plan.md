@@ -284,6 +284,39 @@ as named exceptions, so that file still pins everything else:
   63 reports are byte-identical, so the extra masking changes alignment without
   changing any verdict.
 
+**Residual org-coupling the new tests surfaced.** Both were invisible to the
+suite as it stood, because every test loaded `cisco-campus.yaml`, which is the
+one schema that cannot expose them. Each is now pinned by exactly one test:
+reverting either fix fails that test and nothing else.
+
+- Optional sections (`pools:`, `groups:`) written as a list escaped as a bare
+  `AttributeError` with no path, while every neighbouring mistake produced a
+  clean `SchemaError`. They were reached by `.get()` rather than by the helper
+  that type-checks the mandatory sections. A `_optional_section` helper now
+  gives all four sections identical treatment.
+- `_value_is_in_pool` looked its finding label up in a hardcoded table keyed on
+  the bundled schema's four pool names, so any schema naming a pool anything
+  else raised `KeyError` the moment a value fell outside it. The label is now
+  derived from the pool's own name, which reproduces all four original strings
+  exactly, leaving reports unchanged.
+
+**The limit of generality today: vocabulary yes, dialect no.** The engine reads
+every vocabulary question from the schema (regexes, arithmetic, scopes, netmask
+roles, groups, pools; 10 call sites). It reads no syntax question from it:
+`extract.py`, `section.py`, `line_analyzer.py` and `section_comparer.py` match
+against their own module-level regexes across 11 call sites, and `schema.syntax`
+is parsed, validated, and then never consulted by anything but the equivalence
+test. So a foreign vocabulary works today and a foreign block syntax does not.
+`tests/test_schema_generality.py` is scoped to the half that works and says so,
+rather than quietly asserting less than its name implies.
+
+A related limit, recorded as a test rather than fixed: a variable must be its
+own whitespace-delimited token. Words are split on whitespace and a word counts
+as a variable slot only when the variable regex matches the whole of it, so
+nginx's `listen {Listen_port};` leaves the variable embedded in a longer token
+and the line compares as literal text. Supporting such dialects means matching
+variables inside a word rather than across the whole of it.
+
 **Environment faults found while setting the suite up to run.** None are schema
 work; they were blocking anyone from running the tests at all, so they were fixed
 first:
@@ -451,6 +484,10 @@ omitting a schema is now a `TypeError` at every seam rather than a silent fallba
       "compare configuration files". Lead with what the tool uniquely does.
 - [ ] Add a worked non-Cisco example (nginx or systemd) to demonstrate
       generality. Without one, the general framing is untested.
+      Partly done: `tests/test_schema_generality.py` runs an nginx-flavoured
+      vocabulary end to end, sharing no variable, type, pool or regex with the
+      bundled schema. It is a test rather than user-facing documentation, so
+      the README example is still owed, but the claim is now executable.
 - [ ] Reorganize the corpus: a few representative pairs in `examples/` as
       user-facing documentation, the rest to `tests/fixtures/corpus/`.
       *(Deferred from Phase 0 to avoid moving files twice.)*

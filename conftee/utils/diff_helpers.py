@@ -343,12 +343,15 @@ def _lookup_correct_values(var: str, correct_values: dict[str, str], schema, dev
 # What a pool violation is called in a report, keyed by the pool's name. The
 # engine's finding types are part of its output contract, so they stay fixed
 # here rather than being derived from whatever a schema happens to name a pool.
-POOL_FINDING_TYPES = {
-    "user_ipv4": "user-ipv4-pool",
-    "infra_ipv4": "infra-ipv4-pool",
-    "user_vlan": "user-vlan-pool",
-    "infra_vlan": "infra-vlan-pool",
-}
+def _pool_finding_type(pool_name: str) -> str:
+    """Name the finding raised when a value falls outside `pool_name`.
+
+    Derived from the pool's own name rather than looked up, so that a schema
+    naming its pools anything at all still reports a violation instead of
+    raising. The four pools the bundled schema declares produce exactly the
+    strings this was a hardcoded table of, so reports are unchanged.
+    """
+    return pool_name.replace("_", "-") + "-pool"
 
 
 def _value_is_in_pool(var: str, val: str, section_name: str, schema):
@@ -379,11 +382,11 @@ def _value_is_in_pool(var: str, val: str, section_name: str, schema):
     if pool.kind == "ipv4":
         low, high = calc_ipv4_range(ip=pool.ip, cidr_mask=pool.mask)
         if not ipv4_in_range(val, low, high):
-            wrong_pool_type = POOL_FINDING_TYPES[pool.name]
+            wrong_pool_type = _pool_finding_type(pool.name)
             correct_pool = [low, high]
     else:
         if not vlan_num_in_range(int(val), pool.start, pool.end):
-            wrong_pool_type = POOL_FINDING_TYPES[pool.name]
+            wrong_pool_type = _pool_finding_type(pool.name)
             correct_pool = [str(pool.start), str(pool.end)]
 
     return wrong_pool_type, correct_pool
