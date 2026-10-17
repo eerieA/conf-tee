@@ -17,7 +17,7 @@ build/
 
 # Output files
 *.csv
-config_difference_compare/html_output/
+conftee/html_output/
 
 # Test caches
 .pytest_cache/
