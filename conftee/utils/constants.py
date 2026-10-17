@@ -1,4 +1,25 @@
-# Constants for API integration test purposes, some values are different than in constants.desired.py
+"""Constants the engine still owns, plus the vocabulary the schema replaced.
+
+Two unrelated groups live here, and the split is what matters when reading this
+file:
+
+`GENERAL_IPV4_REGEX`, `GENERAL_CIDR_MASK_REGEX` and `BLOCK_TYPE_*` at the bottom
+are the engine's own. They describe how a value or a block is written, not what
+any particular network calls things, so they are the same for every user and
+stay here.
+
+Everything above them is the original organization's vocabulary: which variables
+exist, what each one looks like, which arithmetic applies, which pool and subnet
+family each belongs to. The engine no longer reads any of it. It is now declared
+per deployment in a schema (see `conftee/schemas/cisco-campus.yaml`), and the
+only remaining reader is `tests/test_schema_equivalence.py`, which pins that
+schema against these originals so a transcription error fails loudly. That test
+and this vocabulary retire together, once the regression suite is the sole pin;
+see docs/repurposing-plan.md.
+
+`SUBNET_CLUSTERS` has no reader at all. It is kept only because it is part of
+what the equivalence test's subnet families were derived from.
+"""
 
 # The dictionary that maps word types to regular expressions
 # Directly copied from version 1 of this program (now stowed under ./v1)
@@ -111,7 +132,8 @@ INT_VARIABLES = ["Vlan_ID_fwglue", "Vlan_ID_vrfglue", "Vlan_ID_user", "RD_ID", "
 GENERAL_IPV4_REGEX = r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}"
 GENERAL_CIDR_MASK_REGEX = r"\/(3[0-2]|[1-2]{0,1}[0-9])"
 
-# For determining which variables should be in a same subnet (by ConstantsSingleton); using all lower case for safty
+# For determining which variables should be in a same subnet; using all lower case for safty.
+# The union-find that read this is gone, so nothing reads it now; see the module docstring.
 # Reminder: exclude clusters that should not be checked for higher level consistency, such as ip_local_pool cluster
 SUBNET_CLUSTERS = ["user_prefix", "vrfglue_prefix", "fwglue_prefix", "vpnglue_prefix"]
 

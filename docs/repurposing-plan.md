@@ -382,19 +382,45 @@ omitting a schema is now a `TypeError` at every seam rather than a silent fallba
       `calc_ipv4_range` masks the base down to the network: any host in the subnet
       yields the same range. Order is therefore not part of the contract, and the
       equivalence test compares membership as sets to say so.
-- [ ] Delete `models/constants_singleton.py` (`ConstantsSingleton`, `DisjointSet`,
-      `determine_cluster`) and the scattered string-inference tests.
-- [ ] Delete `utils/constants.api.py` and `utils/constants.desired.py`, which
-      have no importer.
-- [ ] Decide what remains of `utils/constants.py`. It is not retired by the items
-      above: `GENERAL_IPV4_REGEX`, `GENERAL_CIDR_MASK_REGEX` and `BLOCK_TYPE_*`
-      are still read by `helpers.py`, `extract.py`, `outline.py`,
-      `struct_helpers.py`, `config_compare.py`, `line_analyzer.py` and
-      `gen_summary.py`. These are syntax-level and structural constants rather
-      than vocabulary, so keeping them is defensible, but the file should say so
-      once `IPV4_VARIABLES_*` and the rest of the vocabulary leave it.
-- [ ] Verify all 129 tests still pass. Unchanged reports prove the migration was
-      faithful.
+- [x] Delete `models/constants_singleton.py` (`ConstantsSingleton`, `DisjointSet`,
+      `determine_cluster`) and the scattered string-inference tests. The item
+      above removed its last reader, so this was a straight deletion.
+- [x] Delete `utils/constants.api.py` and `utils/constants.desired.py`, which
+      have no importer. `constants.api.py` was byte-identical to `constants.py`,
+      so nothing was lost with it. `constants.desired.py` was not: it held the
+      client's intended production regexes, differing in six patterns, of which
+      only two (`int_#` and `net_type_6_Vlan_name`) are annotated inline in
+      `constants.py`. The other four (`VRF_name`, `FW_context_name`,
+      `IP_local_pool_name`, and the extra `test_int_#`) differ because
+      `constants.py` deliberately loosened them for test fixtures rather than
+      because the client was wrong. Deleting the file was chosen deliberately
+      over recording that diff: the values are reachable in git history, and the
+      schema's transcription source is already settled above.
+- [x] Decide what remains of `utils/constants.py`. Decision: keep the file, split
+      it in the docstring, delete nothing yet. The contents fall into three
+      groups, and only the first is the engine's own. `GENERAL_IPV4_REGEX`,
+      `GENERAL_CIDR_MASK_REGEX` and `BLOCK_TYPE_*` (8 of 118 lines) are read by
+      seven modules and describe how a value or block is *written* rather than
+      what a network calls things. They are syntax-level and structural rather
+      than vocabulary, so they are user-independent and stay.
+      `WORD_TYPE_REGEXES`, `IPV4_VARIABLES*` and `INT_VARIABLES` are vocabulary
+      the schema has fully replaced; no engine module reads them, but
+      `tests/test_schema_equivalence.py` does, and deleting them would gut the
+      test whose job is pinning the schema against them. They retire together
+      with that test, once the regression suite is the sole pin. `SUBNET_CLUSTERS`
+      has no reader at all, kept only as the source the test's subnet families
+      were derived from. The module docstring now records this split, replacing a
+      header that described the file as being for API integration tests and
+      pointed at the now-deleted `constants.desired.py`.
+- [x] Verify the suite still passes. Unchanged reports prove the migration was
+      faithful. 190 pass: the 129 this item was written against are
+      `tests/test_regression.py`, joined since by 61 in
+      `tests/test_schema_equivalence.py`. Four checks, because the suite alone
+      does not cover all of it: `tests/fixtures/baseline.json` is untouched, so
+      all 63 report SHAs are byte-identical; every module in the package imports
+      cleanly, which the suite would not catch on an untested path; no engine
+      module or entry point references the retired vocabulary constants; and all
+      63 corpus pairs run end to end through the real pipeline.
 
 ### Phase 3: make it presentable
 
