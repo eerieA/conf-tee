@@ -415,7 +415,7 @@ omitting a schema is now a `TypeError` at every seam rather than a silent fallba
       built for a distinction nothing makes. `TEMP_UPLINK_PREFIXES` was not pool
       data at all, so it moved rather than retired: it supplies correct values for
       four infra prefix variables and describes the sample corpus, so it now lives
-      in `conftee/sample_corpus.py` and both entry points pass it explicitly. The
+      in `examples/sample_corpus.py` and both entry points pass it explicitly. The
       silent fallback is gone, matching the schema argument above.
 - [x] `_value_is_wrong_sourced`: subnet membership now comes from
       `schema.group_of` rather than `ConstantsSingleton` clusters and
@@ -489,24 +489,47 @@ example configs by path, and the reorganization below changes those paths. The
 corpus item already carries a note about not moving files twice; writing their
 paths twice has the same cost, so the moves come first and the prose follows.
 
-- [ ] **Reorganize the corpus** into a few representative pairs in `examples/`
+- [x] **Reorganize the corpus** into a few representative pairs in `examples/`
       as user-facing documentation, the rest in `tests/fixtures/corpus/`.
       *(Deferred from Phase 0 to avoid moving files twice.)*
-      Move `conftee/sample_corpus.py` with it. The prefixes it holds describe the
-      sample configs, not the engine, and they sit in the package today only
-      because `main.py` reads them at run time. Left there for now so this
-      reorganization does not have to undo an import into `tests/`.
-      Verify: the full suite passes and `tests/fixtures/baseline.json` stays
-      byte-identical. The corpus is the regression coverage, so a move that
-      changes a single report SHA is a move that broke something.
+      Done: 4 pairs in `examples/{golden,user}/`, 59 plus 3 unpaired strays in
+      `tests/fixtures/corpus/{golden,user}/`. `sample_corpus.py` moved to
+      `examples/`, out of the shipped package, which settles the half of the
+      packaging item below that concerned it. `examples/__init__.py` makes it
+      importable; the repo root is already on `sys.path` via `pythonpath`.
+      Verified: 254 tests pass, `tests/fixtures/baseline.json` byte-identical,
+      all 63 report SHAs unchanged on a full end-to-end run, package import walk
+      clean, and `main.py` runs against the new layout.
+
+      Two roots, not one, and the harness spans them. `tests/fixtures/baseline.json`
+      keys are bare filenames, so a pair is now located by searching the roots
+      rather than by joining onto a single golden and user directory. The
+      alternative, copying the four example pairs so each root is
+      self-contained, was rejected: eight duplicated files that drift silently
+      and leave a reader unable to tell which copy is authoritative. A new
+      `test_corpus_roots_are_disjoint` enforces the uniqueness the lookup
+      assumes.
+
+      The four examples were chosen from the baseline rather than by eye, as a
+      ladder: 3 lines with a single finding, 12 lines covering four finding
+      kinds, 73 lines of real production-shaped config that fully conforms, and
+      49 lines exercising every category including structural mismatches.
+      `examples/README.md` describes them in that order.
+
+      `test_no_identifying_strings` needed widening, not just repointing. It
+      listed one directory level, and the corpus now sits one level below its
+      root, so a flat listing would have scanned the example README and none of
+      the configs. It now walks recursively and covers 141 files, up from the
+      129 corpus files it reached before. This guard matters more now the repo
+      is public, so it is worth noting that the move could have silently
+      hollowed it out.
 - [ ] **Verify packaging.** Confirm corpus files are excluded from the built
       wheel, and that `conftee/schemas/*.yaml` is *included*. Poetry's
       `packages = [{ include = "conftee" }]` takes `*.py` by default, so the
       bundled schema needs an explicit include rule or it ships missing.
-      `sample_corpus.py` is a `*.py` file inside the package, so it ships by
-      default and would put one network's addresses in every install. It needs
-      excluding, or to have moved out of `conftee/` by then, which the item
-      above may already have settled. Placed here, directly after the moves,
+      `sample_corpus.py` has moved out of `conftee/` to `examples/`, so it no
+      longer ships by default and no longer needs an exclude rule; what remains
+      is to confirm that in the built wheel. Placed here, directly after the moves,
       because that is when the answer is cheapest to check and the layout is
       still fresh. Verify: build the wheel and list its contents.
 - [ ] **Rewrite `README.md`** around the reverse-template framing rather than
@@ -528,6 +551,15 @@ paths twice has the same cost, so the moves come first and the prose follows.
 - [x] Unpin over-specific dependency versions. Done ahead of schedule during
       Phase 2, because the exact `==` pins were blocking the test suite from
       installing at all; see the environment faults noted there.
+- [ ] **Remove the three unpaired corpus strays**, or pair them.
+      `tests/fixtures/corpus/golden/test_file_one_device.txt`,
+      `tests/fixtures/corpus/user/test_file_one_device.json` and
+      `tests/fixtures/corpus/user/test_json_simple.json` are leftovers of the
+      removed JSON and API path: the first has no `.txt` partner so it is not a
+      pair, and the last has no golden side at all. Nothing reads any of them,
+      and no baseline entry covers them. They were carried through the
+      reorganization untouched so that the move stayed behavior-neutral and the
+      deletion stays a separate, visible decision.
 - [ ] **Update `docs/architecture.md`** now that `constants_singleton.py` is
       gone. Last, so it describes the layout the items above leave behind rather
       than the one they found.

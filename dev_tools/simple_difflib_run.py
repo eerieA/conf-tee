@@ -51,7 +51,7 @@ print("\nSimple run to test the oringinal Differ on two 2-line texts:")
 print(diff)
 
 print("\nSimple run to test the oringinal Differ on one section:")
-diff = compare_lines_from_files('./golden_config_files/test_file_one_section_bad.txt', './user_config_files/test_file_one_section_bad.txt')
+diff = compare_lines_from_files('./examples/golden/test_file_one_section_bad.txt', './examples/user/test_file_one_section_bad.txt')
 print(diff)
 
 

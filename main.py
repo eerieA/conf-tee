@@ -7,21 +7,21 @@ from conftee.models.outline import Outline
 from conftee.models.gen_summary import GenSummary
 from conftee.utils.read_config import ReadConfig
 from conftee.utils import schema as schema_module
-from conftee.sample_corpus import SAMPLE_INFRA_PREFIXES
+from examples.sample_corpus import SAMPLE_INFRA_PREFIXES
 
 success_color = fg("green")
 attention_color = fg("blue")
 reset_color = attr("reset")
 
 SCHEMA_PATH = "./conftee/schemas/cisco-campus.yaml"
-GOLDEN_DIR = "./golden_config_files/"
-USER_DIR = "./user_config_files/"
+# This driver demonstrates the tool over the sample pairs in `examples/`. The
+# rest of the corpus lives in `tests/fixtures/corpus/` and is regression
+# material rather than documentation, so it is deliberately not offered here.
+GOLDEN_DIR = "./examples/golden/"
+USER_DIR = "./examples/user/"
 # TEST_FILE_NAME = 'test_file_one_line_bad.txt'
 # TEST_FILE_NAME = 'test_file_one_section_bad.txt'
-# TEST_FILE_NAME = 'test_file_structure_good.txt'
 TEST_FILE_NAME = "test_file_structure_bad.txt"
-# TEST_FILE_NAME = 'test_file_two_devices.txt'
-# TEST_FILE_NAME = 'test_Building router is HSRP router pair, FW context router is VSS router pair'
 
 
 # Main entry function

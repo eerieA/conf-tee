@@ -81,34 +81,21 @@ the project to the interpreter versions current when those versions shipped.
             ip address {Vrfglue_prefix_1st_IP} {Vrfglue_prefix_netmask} standby {{Vrfglue_prefix_1st_IP}+1}
     
 2. Open the folder where the Configuration Comparison Tool is located. 
-3. Locate two sub-folders: `./user_config_files` and `./golden_config_files`. 
+3. Locate two sub-folders: `./examples/golden` and `./examples/user`. 
 4. Create both configuration text files for comparison in the respective folders: <br>
-   Place user configuration files inside user_config_files. <br>
-   Place golden configuration files inside golden_config_files. <br>
+   Place golden configuration files inside examples/golden. <br>
+   Place user configuration files inside examples/user. <br>
    Keep both file names as the same.
 
 ### 2 Starting and Selecting the Golden Config
 1. Execute the `main.py` script.
 2. Upon running the tool, a list of available golden configuration files will be presented in your chosen CLI.
 3. Input the file name (with extension) of your chosen golden configuration file.
-- Note: Currently works correctly for these standalone files:
-    - *test_file_one_device.txt*
-    - *test_file_one_line_bad.txt*
-    - *test_file_one_section_bad.txt*
-    - *test_file_structure_bad.txt*
-    - *test_file_structure_good.txt*
-    - *test_file_two_devices.txt*
-    - *test_Building router is HSRP router pair, FW context router is VSS router pair.txt*
-    - *add a FW context connected to HSRP router pair.txt*
-    - *add a FW context connected to VSS router pair.txt*
-    - ...
-    - *add an IB wireless prefix on a VRF in wireless  rt-hsrp different context rt-vss wireless rt has no vrf incl ip helper.txt*
-    - *add an IB wireless prefix on a VRF in wireless  rt-hsrp different context rt-vss wireless rt has vrf incl ip helper.txt*
-    
+- The four pairs offered are described in `examples/README.md`, smallest first.
     Feel free to try others of your own, but there might be errors and/or failures.
 
 ### 3 Selecting the User Config
-1. It will be searched using the same name in the user_config_files folder. The program will run a test file pair if a user configuration file is not found.
+1. It will be searched using the same name in the examples/user folder. The program will run a test file pair if a user configuration file is not found.
 
 
 ### 4 Result
@@ -141,7 +128,7 @@ Importing and usage steps:
       # This should be a dict[str, list[str]]
       user_json_obj = body['results'][0]
       user_content = ReadConfig.read_config_from_response(user_json_obj)
-      golden_content = ReadConfig.read_config_from_txt("./golden_config_files/sample_golden.txt")
+      golden_content = ReadConfig.read_config_from_txt("./examples/golden/sample_golden.txt")
 
       extractGolden, extractUser = Extract._extract_structs(golden_content, user_content)
       extractData = (extractGolden, extractUser)

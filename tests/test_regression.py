@@ -20,11 +20,18 @@ from conftee.models.gen_summary import GenSummary
 from conftee.models.outline import Outline
 from conftee.utils.read_config import ReadConfig
 from conftee.utils import schema as schema_module
-from conftee.sample_corpus import SAMPLE_INFRA_PREFIXES
+from examples.sample_corpus import SAMPLE_INFRA_PREFIXES
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-GOLDEN_DIR = os.path.join(ROOT, "golden_config_files")
-USER_DIR = os.path.join(ROOT, "user_config_files")
+# The corpus lives under two roots: a handful of pairs sit in `examples/` as
+# user-facing documentation and the rest in `tests/fixtures/corpus/`. Baseline
+# keys are bare filenames, so a pair is found by searching the roots rather than
+# by joining onto one of them. Names are unique across both roots, which
+# `test_corpus_roots_are_disjoint` enforces.
+CORPUS_ROOTS = (
+    os.path.join(ROOT, "examples"),
+    os.path.join(ROOT, "tests", "fixtures", "corpus"),
+)
 SCHEMA_PATH = os.path.join(ROOT, "conftee", "schemas", "cisco-campus.yaml")
 BASELINE = os.path.join(ROOT, "tests", "fixtures", "baseline.json")
 
@@ -34,10 +41,39 @@ with open(BASELINE) as _f:
 PAIR_NAMES = sorted(_baseline)
 
 
+def pair_paths(name):
+    """Locate one pair's golden and user files across the corpus roots.
+
+    Raises rather than skipping when a pair is missing: a baseline entry whose
+    files have vanished is a corpus that lost coverage, which is exactly what
+    these tests exist to catch.
+    """
+    for root in CORPUS_ROOTS:
+        golden = os.path.join(root, "golden", name)
+        user = os.path.join(root, "user", name)
+        if os.path.exists(golden) and os.path.exists(user):
+            return golden, user
+    raise FileNotFoundError(f"no corpus root holds both halves of {name!r}")
+
+
+def iter_pair_names():
+    """Every name with both halves present, across all roots."""
+    for root in CORPUS_ROOTS:
+        golden_dir = os.path.join(root, "golden")
+        if not os.path.isdir(golden_dir):
+            continue
+        for name in os.listdir(golden_dir):
+            if name.endswith(".txt") and os.path.exists(
+                os.path.join(root, "user", name)
+            ):
+                yield name
+
+
 def run_pair(name):
     """Run one golden/user pair through the full pipeline."""
-    golden = ReadConfig.read_config_from_txt(os.path.join(GOLDEN_DIR, name))
-    user = ReadConfig.read_config_from_txt(os.path.join(USER_DIR, name))
+    golden_path, user_path = pair_paths(name)
+    golden = ReadConfig.read_config_from_txt(golden_path)
+    user = ReadConfig.read_config_from_txt(user_path)
 
     # The engine prints progress to stdout; keep test output readable.
     with contextlib.redirect_stdout(io.StringIO()):
@@ -71,12 +107,17 @@ def test_json_report_unchanged(name):
 
 def test_corpus_is_complete():
     """Guard against fixtures silently disappearing."""
-    pairs = [
-        n
-        for n in os.listdir(GOLDEN_DIR)
-        if n.endswith(".txt") and os.path.exists(os.path.join(USER_DIR, n))
-    ]
-    assert len(pairs) == len(PAIR_NAMES)
+    assert len(list(iter_pair_names())) == len(PAIR_NAMES)
+
+
+def test_corpus_roots_are_disjoint():
+    """No pair name appears under two roots.
+
+    Baseline keys carry no root, so a name present in both would make which
+    files a test reads depend on root order rather than on the name.
+    """
+    names = list(iter_pair_names())
+    assert len(names) == len(set(names))
 
 
 # Digests of the identifiers that must never appear in the published corpus.
@@ -128,25 +169,27 @@ def _find_banned(text):
 
 def test_no_identifying_strings():
     """The published corpus must not carry organization- or person-identifying names."""
-    scanned_dirs = (
-        GOLDEN_DIR,
-        USER_DIR,
+    scanned_dirs = CORPUS_ROOTS + (
         os.path.join(ROOT, "resources"),
         os.path.join(ROOT, "docs"),
     )
     skip_ext = {".jpg", ".png", ".pyc"}
 
+    # Walked rather than listed: the corpus sits one level down from its root,
+    # in golden/ and user/, so a flat listing would scan neither.
     offenders = []
     for directory in scanned_dirs:
         if not os.path.isdir(directory):
             continue
-        for fn in os.listdir(directory):
-            path = os.path.join(directory, fn)
-            if not os.path.isfile(path) or os.path.splitext(fn)[1].lower() in skip_ext:
-                continue
-            with open(path, encoding="utf-8", errors="surrogateescape") as f:
-                hits = _find_banned(f.read())
-            offenders += [f"{fn}: {hit}" for hit in sorted(hits)]
+        for dirpath, _dirnames, filenames in os.walk(directory):
+            for fn in filenames:
+                path = os.path.join(dirpath, fn)
+                if os.path.splitext(fn)[1].lower() in skip_ext:
+                    continue
+                with open(path, encoding="utf-8", errors="surrogateescape") as f:
+                    hits = _find_banned(f.read())
+                rel = os.path.relpath(path, ROOT)
+                offenders += [f"{rel}: {hit}" for hit in sorted(hits)]
     assert not offenders, f"identifying strings found: {offenders[:10]}"
 
 
