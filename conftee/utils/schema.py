@@ -60,6 +60,25 @@ def _require(mapping, key, path, expected_type=None):
     return value
 
 
+def _optional_section(raw, key):
+    """Fetch a section that may be omitted, as a mapping.
+
+    An omitted section and one written as `groups:` with nothing under it both
+    mean "none of these", the latter because YAML reads an empty value as None.
+    Anything else present but not a mapping is an authoring mistake, and gets
+    the same SchemaError as a malformed mandatory section rather than an
+    AttributeError from iterating it.
+    """
+    value = raw.get(key)
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise SchemaError(
+            f"{key!r} must be dict, got {type(value).__name__}", key
+        )
+    return value
+
+
 def _compile(pattern, path):
     """Compile a regex, reporting the schema location instead of a bare re.error.
 
@@ -236,7 +255,7 @@ class Schema:
         }
         self.pools = {
             name: Pool(name, body, f"pools.{name}")
-            for name, body in (raw.get("pools") or {}).items()
+            for name, body in _optional_section(raw, "pools").items()
         }
         self.variables = {
             name: Variable(name, body, f"variables.{name}")
@@ -244,7 +263,7 @@ class Schema:
         }
         self.groups = {
             name: Group(name, body, f"groups.{name}")
-            for name, body in (raw.get("groups") or {}).items()
+            for name, body in _optional_section(raw, "groups").items()
         }
 
         self._resolve()
