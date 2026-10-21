@@ -755,6 +755,85 @@ Only if the earlier phases are done and the work still appeals.
 - [ ] Complete the one unfinished client requirement: structural relational
       anomalies (e.g. inconsistent counts of downlink portchannels vs downlink
       device blocks).
+- [ ] Make device title recognition configurable: `DEVICE_TITLE_LINE_REGEX`,
+      `DEVICE_TITLE_REGEX` and `COMMON_TERMS` (`models/extract.py:11`, `:12`,
+      `:13`). This is the syntax half of what the schema migration did for
+      vocabulary, and the same argument applies: a user should not have to
+      adopt one organization's conventions to get correct results.
+
+      The two regexes and the word list are not in the same state, and the
+      second is the one that matters.
+
+      The regexes are already declared, in `syntax.blocks.device` of every
+      schema, byte-identical to the constants and pinned by
+      `test_bundled_syntax_matches_hardcoded`. So that part is wiring rather
+      than design: read them from the schema instead of the module, and delete
+      the pin once nothing is left to pin. The same is true of the six
+      syntax constants in `section.py`, `line_analyzer.py` and
+      `section_comparer.py`, which is why this is really one piece of work and
+      not three.
+
+      `COMMON_TERMS` has no schema representation at all, and it is not
+      cosmetic. `_like_common_term` decides whether the first word of a device
+      title is a hostname or a role word, by `SequenceMatcher` ratio against a
+      16-entry list of English networking words with a 0.75 cutoff. The device
+      name it yields reaches the comparison as `missing_device_names` and
+      `extra_device_names`, so the word list can change a verdict. The failure
+      is quiet and plausible: `~ switch01 Core Uplink ~`, `~ access2 Floor 3 ~`
+      and `~ distribution-a Main ~` each lose their device name, because the
+      hostname resembles a listed word closely enough to be read as a role.
+      Those are ordinary hostnames, not contrived ones.
+
+      The word list is also a symptom rather than the root. It exists to split
+      a device title into name and role, which is a job that only makes sense
+      because the top level is specifically a *device*. See the item below.
+
+      *Worth recording, not worth doing yet.* Nobody has asked, and the tool
+      works for anyone whose device titles look like the bundled dialect. But
+      unlike the rest of Phase 4 this is a correctness limit rather than
+      polish, so if a second dialect ever shows up this is the item that
+      blocks it. See the dialect note in
+      [architecture.md](./architecture.md) and the scoping statement in
+      `tests/test_schema_generality.py`.
+- [ ] Generalize the block hierarchy itself: two fixed levels named "device"
+      and "section" become N levels of nested blocks. The current names are
+      not just vocabulary, they are the structure, so this is the item the
+      three constants above ultimately belong to.
+
+      How deep the assumption goes, which is the reason to record it rather
+      than attempt it casually:
+
+      - `BLOCK_TYPE_DEVICE` / `BLOCK_TYPE_SECTION` are `"d"` and `"s"`, two
+        values branched on with `if`/`elif` in `outline.py`,
+        `struct_helpers.py` and `config_compare.py`.
+      - `_build_hierarchy_from_struct` returns `dict[str, list[str]]`: one
+        device maps to a flat list of sections. A third level has nowhere to
+        go. The keys are composite strings built by `_hrch_key_format` as
+        `f"{device}, {section}"`, which assumes exactly two components.
+      - `Outline` keeps `self.sections` and `self.device_titles` as separate
+        lists rather than a tree.
+      - The error types are paired per level: `ERR_TYPE_MISSING_DEVICE` and
+        `ERR_TYPE_MISSING_SECTION`, likewise for extras.
+      - The JSON report names the levels in its own fields, including
+        `missing_device_names` and `extra_device_names`, so changing the model
+        is a breaking change to the output contract rather than an internal
+        refactor.
+
+      The natural shape is a recursive block with a declared level name, so a
+      schema could describe device/section, or section/subsection, or any
+      depth, and the engine would compare siblings at each level without
+      knowing what the levels are called. `_like_common_term` disappears in
+      that design: splitting a title into "name" and "role" is a device-shaped
+      question, and a generic block has a title and children.
+
+      *Recorded because it is the real ceiling, not because it should be done.*
+      It touches every structural module, rewrites the report format, and the
+      63-pair corpus pins the current output exactly, so the baseline would
+      have to be regenerated and re-reviewed by hand rather than trusted. That
+      is a rewrite with a user-visible format break, for a generality nobody
+      has yet asked for. Worth doing only if a second dialect arrives and the
+      configurable-title item above proves insufficient, which it would, for
+      any config whose nesting is not two levels deep.
 
 ---
 
