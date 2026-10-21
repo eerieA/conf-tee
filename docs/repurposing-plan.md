@@ -596,18 +596,46 @@ paths twice has the same cost, so the moves come first and the prose follows.
 - [x] Unpin over-specific dependency versions. Done ahead of schedule during
       Phase 2, because the exact `==` pins were blocking the test suite from
       installing at all; see the environment faults noted there.
-- [ ] **Remove the three unpaired corpus strays**, or pair them.
-      `tests/fixtures/corpus/golden/test_file_one_device.txt`,
-      `tests/fixtures/corpus/user/test_file_one_device.json` and
-      `tests/fixtures/corpus/user/test_json_simple.json` are leftovers of the
-      removed JSON and API path: the first has no `.txt` partner so it is not a
-      pair, and the last has no golden side at all. Nothing reads any of them,
-      and no baseline entry covers them. They were carried through the
-      reorganization untouched so that the move stayed behavior-neutral and the
-      deletion stays a separate, visible decision.
-- [ ] **Update `docs/architecture.md`** now that `constants_singleton.py` is
-      gone. Last, so it describes the layout the items above leave behind rather
-      than the one they found.
+- [x] **Remove the three unpaired corpus strays.** Done, deleted rather than
+      paired. Both `.json` files are API-response shaped, a `results` list
+      wrapping a device-to-lines dict, which is the format
+      `read_config_from_response` takes; pairing them would have meant
+      reviving the removed API path to generate a golden side for fixtures
+      nothing asks for.
+
+      Each precondition was rechecked rather than taken from this entry before
+      deleting: no `.py`, `.json`, `.md` or `.toml` file outside this plan names
+      any of the three, and none of the 63 baseline keys matches them. After
+      deletion the corpus is symmetric, 59 and 59 under `tests/fixtures/corpus/`
+      and 4 and 4 under `examples/`, and `baseline.json` is untouched.
+      The suite still passes 254 tests and the identifier guard drops from 141
+      files to 138, which is the expected three and confirms it was scanning
+      them.
+- [x] **Update `docs/architecture.md`.** Done. The whole
+      "Configuration / constants (being replaced)" section described code that
+      no longer exists: `models/constants_singleton.py` and its `DisjointSet`
+      are gone, and the seven-row table of name-based inferences listed line
+      numbers for tests the engine no longer makes.
+
+      Replaced with a "The schema" section showing the real current shape: the
+      caller loads a YAML schema, `ConfigCompare` and `GenSummary` take it as a
+      constructor argument, and the checks reach it through seven accessors
+      (`regex_for`, `arithmetic_for`, `variables_with_arithmetic`,
+      `variables_with_scope`, `is_netmask`, `group_of`, `pool_for`), across 11
+      call sites. The inference table was kept but turned into a
+      formerly/now mapping, since what each row replaced is the useful part and
+      the old line numbers were not.
+
+      Added a subsection for the dialect limit, so the architecture doc states
+      it where someone reading the design will meet it: `syntax:` is validated
+      and then unread, and block recognition still comes from eight
+      module-level patterns across `extract.py` (2), `section.py` (3),
+      `line_analyzer.py` (2) and `section_comparer.py` (1).
+
+      The pipeline diagram was checked rather than assumed stale: all 23 methods
+      it names still exist, so it was left alone apart from showing the schema
+      entering at `ConfigCompare`. One unrelated correction: the header pointed
+      at `resources/class_diagram.jpg`, which is no longer in the repository.
 
 ### Phase 3a: retire dead code
 

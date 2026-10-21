@@ -3,9 +3,9 @@
 Describes the current (v2) design, written Apr 2024 – Jul 2024. For the
 predecessor it replaced, see [v1-retrospective.md](./v1-retrospective.md).
 
-Text version of the class diagram (replaces `resources/class_diagram.jpg`, which
-predates the removal of the OpenAI structure extractor). Kept as text so it is
-diffable and can be updated alongside the code.
+Text rather than an image, so it is diffable and can be updated alongside the
+code. It replaces a `class_diagram.jpg` that predated the removal of the OpenAI
+structure extractor and is no longer in the repository.
 
 ---
 
@@ -39,6 +39,9 @@ diffable and can be updated alongside the code.
           ConfigCompare                  models/config_compare.py
           compare_structs()              aligns device/section blocks
           calculate_diff()               then compares matched sections
+                  ^
+                  |  Schema (see below): every vocabulary question
+                  |  is answered from it, not from the code
                   |
                   v
           SectionComparer                models/section_comparer.py
@@ -82,45 +85,63 @@ diffable and can be updated alongside the code.
   seperate_line_ops(.)      converts diff text -> typed DataFrame, ONCE
 ```
 
-## Configuration / constants (being replaced)
+## The schema
+
+The vocabulary is not in the code. A caller loads a YAML schema and passes it
+in; `ConfigCompare` and `GenSummary` both take it as a constructor argument and
+thread it down to the checks.
 
 ```
-  utils/constants.py
-  WORD_TYPE_REGEXES     {variable name -> regex}
-  IPV4_VARIABLES        which variables take IPv4 arithmetic
-  INT_VARIABLES         which variables take integer arithmetic
-  IPV4_VARIABLES_USER   pool membership
-  IPV4_VARIABLES_INFRA  pool membership
-  SUBNET_CLUSTERS       prefixes that define a subnet family
+  schema.yaml  (caller-supplied; conftee/schemas/cisco-campus.yaml is bundled)
         |
         v
-  ConstantsSingleton        models/constants_singleton.py
-  get_clusters_dict()       RECOVERS variable families at runtime by
-  determine_cluster(.)      string-prefix matching on variable NAMES
+  schema.load(path) / schema.loads(text)      utils/schema.py
+  validates, compiles every regex, raises SchemaError with a path
+        |
+        |  Schema
+        v
+  ConfigCompare(file_data, outline_data, schema)
+  GenSummary(schema)
         |
         v
-  DisjointSet
-  find(.) / union(.)        union-find over name prefixes
+  the checks, via seven accessors:
+
+  regex_for(var)                what a value must look like
+  arithmetic_for(var)           int or ipv4, for {{Var}+1}
+  variables_with_arithmetic(k)  all variables of one arithmetic kind
+  variables_with_scope(s)       section / file / none consistency
+  is_netmask(var)               role, not a name test
+  group_of(var)                 declared subnet family
+  pool_for(var)                 declared address range
 ```
 
-> **Note: this branch is scheduled for deletion.**
-> `ConstantsSingleton` + `DisjointSet` exist only to *infer* which variables
-> belong to the same subnet family, by matching shared name prefixes
-> (`Vrfglue_prefix`, `Vrfglue_prefix_1st_IP`, `Vrfglue_prefix_netmask` -> one
-> family). Related inferences are scattered elsewhere as string tests:
->
-> | Inference | Where | How |
-> |---|---|---|
-> | family membership | `constants_singleton.py` | name prefix match + union-find |
-> | "is a netmask" | `diff_helpers.py:432` | `"netmask" in var` |
-> | VLAN pool check | `diff_helpers.py:370` | `if var == "Vlan_ID_user"` |
-> | arithmetic kind | `section_comparer.py:55` | membership in `IPV4_VARIABLES` / `INT_VARIABLES` |
-> | consistency scope | `diff_helpers.py:22` | computed by *subtraction* from the regex dict |
-> | IP pool membership | `diff_helpers.py:360` | membership in `IPV4_VARIABLES_USER` / `_INFRA` |
-> | value binding by type | `line_analyzer.py:290` | membership in `IPV4_VARIABLES` |
->
-> Declaring families, roles and scopes in a schema file replaces this inference.
-> See [repurposing-plan.md](./repurposing-plan.md) §2.
+Each accessor replaces an inference the engine used to make from variable
+*names*. That is what made the tool specific to one organization: a user had to
+name variables in a magic convention to get correct behavior.
+
+| Question | Formerly inferred by | Now |
+|---|---|---|
+| family membership | name-prefix match plus union-find, in a `ConstantsSingleton` and `DisjointSet` | `groups:` declared outright |
+| "is a netmask" | `"netmask" in var` substring test | `role: netmask` |
+| VLAN pool check | `if var == "Vlan_ID_user"` | `pools:` keyed by the pool's own name |
+| arithmetic kind | membership in `IPV4_VARIABLES` / `INT_VARIABLES` | `arithmetic:` on the type |
+| consistency scope | subtraction from the regex dict | `scope:` on the variable |
+| IP pool membership | membership in `IPV4_VARIABLES_USER` / `_INFRA` | `pool:` on the variable |
+| value binding by type | membership in `IPV4_VARIABLES` | `types:` carrying regex and arithmetic together |
+
+`models/constants_singleton.py`, which held the first row, is gone.
+`utils/constants.py` still exists but the engine no longer reads the vocabulary
+half of it; that half and the equivalence test pinning it retire together. See
+[repurposing-plan.md](./repurposing-plan.md), Phase 3a.
+
+### What the schema does not yet control
+
+`syntax:` is parsed and validated, and then nothing reads it. Block and line
+recognition is still matched against module-level patterns: two in
+`extract.py`, three in `section.py`, two in `line_analyzer.py`, one in
+`section_comparer.py`. So a foreign *vocabulary* works today and a foreign
+*block syntax* does not. `tests/test_schema_generality.py` is scoped to the
+half that works and says so.
 
 ## Notes
 
