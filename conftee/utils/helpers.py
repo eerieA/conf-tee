@@ -1,5 +1,4 @@
 import re, ipaddress
-from mako.template import Template
 
 from .constants import GENERAL_IPV4_REGEX, GENERAL_CIDR_MASK_REGEX
 
@@ -182,22 +181,6 @@ def replace_device_titles_in_response(resp_dict:dict[str, list[str]], devices_g:
         new_key = devices_g[i]
         result[new_key] = value
     return result
-
-def replace_device_titles_in_golden(golden_file_path:str, device_names:list[str]):
-    with open(golden_file_path, 'r') as f:
-        template_string = f.read()
-
-    template = Template(template_string)
-
-    render_args = {}
-    for i in range(len(device_names)):
-        key = "device_" + "{:03d}".format(i+1)
-        render_args[key] = device_names[i]
-
-    output_text = template.render(**render_args)
-    output_lines = output_text.split('\n')
-    
-    return output_lines
 
 def search_key_in_dict(dictionary: dict, key: str):
     """

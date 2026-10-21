@@ -81,8 +81,8 @@ poetry build
 python -m pip install dist/conftee-0.1.5-py3-none-any.whl
 ```
 
-Python 3.9 or newer. The dependencies (`colored`, `Mako`, `Jinja2`, `PyYAML`,
-`pandas`) install with it.
+Python 3.9 or newer. The dependencies (`colored`, `PyYAML`, `pandas`) install
+with it.
 
 For working *on* the tool rather than with it, see
 [Addendum A](#addendum-a-development-setup).

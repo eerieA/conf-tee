@@ -17,7 +17,6 @@ build/
 
 # Output files
 *.csv
-conftee/html_output/
 
 # Test caches
 .pytest_cache/

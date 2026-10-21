@@ -682,7 +682,7 @@ dead when the repository was published.
       `sample_corpus.py` underneath it. Leaving it in place through that churn
       costs nothing and keeps a second opinion available while files move.
 
-- [ ] Retire the dead HTML output path. `_generate_html`
+- [x] Retire the dead HTML output path. `_generate_html`
       (`conftee/models/gen_summary.py:651`) has a body that is entirely one
       commented-out string literal, and nothing calls it. Its own docstring
       says the HTML visualization "is currently broken and not in use because
@@ -716,6 +716,32 @@ dead when the repository was published.
       code is a larger change than fixing an ignore rule and belongs with the
       other retirements. Verify: suite passes, the wheel no longer carries
       `html_templates/`, and `Requires-Dist` lists three dependencies.
+
+      Done, and all three verifications hold: 194 tests pass, the wheel carries
+      no `html_templates/` entry, and `Requires-Dist` is exactly `PyYAML`,
+      `colored` and `pandas`. `gen_summary.py` went from 688 lines to 645,
+      `helpers.py` from 244 to 227. Checked further than the plan asked: the
+      wheel was installed into a clean venv, where neither Jinja2 nor Mako is
+      present, every module imported, and the README's own sample ran from
+      outside the repo and printed the `2 value mismatches` the README promises.
+
+      One correction to the entry above. It described the Mako use as having
+      "the same one-line fix" as the Jinja2 one, but the two were not alike:
+      `from mako.template import Template` was a live top-level import at
+      `utils/helpers.py:2`, not a commented-out line, so Mako was genuinely
+      required at import time until `replace_device_titles_in_golden` went with
+      it. The Jinja2 references really were all inside the dead string literal.
+
+      Two leftovers went too, both reachable only from the removed code: the
+      now-empty `conftee/html_templates/` and `conftee/html_output/`
+      directories, and with the latter the `.gitignore` rule added in
+      `5c80208` to ignore what that renderer used to write.
+
+      Noted, not acted on: `replace_device_titles_in_response`
+      (`utils/helpers.py:173`) has no caller either. It is the surviving
+      sibling of the function removed here and looks like the same kind of
+      fixture helper, but it is pre-existing dead code rather than an orphan
+      this change created, so it stays until someone decides on it.
 
 ### Phase 4: optional polish
 

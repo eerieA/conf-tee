@@ -40,10 +40,6 @@ ERR_TYPE_VAL_MISMATCH, ERR_TYPE_VAL_INCONS_SCT, ERR_TYPE_VAL_INCONS_FILE, ERR_TY
     "command-mistach",
 )
 
-# Used to be for Jinja2 powered html output
-OUTPUT_DIR = '/html_output/'
-JINJA_TEMPLATE_DIR = '/html_templates/'
-
 def _line_is_empty(line:str):
     empty_pattern = r'^[\s\n!]+$'
     return bool(re.match(empty_pattern, line)) or len(line) <= 0
@@ -647,42 +643,3 @@ class GenSummary:
         )
 
         return summary, diff_result_df, json_report
-
-    def _generate_html(self, output_file_name:str=""):
-        """
-        Description:
-            (!!!The html visulization is currently broken and not in use because of both requirement changes and implementation changes.)
-            Read a Jinja template and render the diff check result into an html format string. And if needed, write to a local file.
-            
-        Args:
-            output_file_name (str): The file name of output local html file. Defaults to "", meaning no local file will be written.
-        
-        Returns:
-            str: Generated html format string.
-        """
-
-        """ diff_result = self.calculate_diff()
-        # Setup Jinja2 environment
-        path = pathlib.Path(__file__)
-        parent_path = path.parent.parent
-        env = Environment(loader=FileSystemLoader(str(parent_path)+JINJA_TEMPLATE_DIR))
-        
-        # Load the template
-        template = env.get_template('main_diff_check.html')
-        
-        # Render the template with the diff_result
-        rendered_html = template.render(diff_result=diff_result,
-                                        file_content_1=self.outline_1.sections[0].content, file_struct_1=self.outline_1.file_struct,
-                                        file_content_2=self.outline_2.sections[0].content, file_struct_2=self.outline_2.file_struct)
-        
-        # If a non-empty output file name is specified, write html to file
-        if output_file_name:
-            print(f"Writing html to local storage with name \"{output_file_name}\"...")
-            filename = output_file_name
-            filepath = OUTPUT_DIR
-            # Write the rendered content to an HTML file
-            file_name_and_path = str(parent_path) + filepath + filename
-            with open(file_name_and_path, 'w') as file:
-                file.write(rendered_html)
-        
-        return rendered_html """
