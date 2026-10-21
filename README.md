@@ -361,13 +361,6 @@ brute-forces a sample to prove the check actually fires.
 
 `tests/test_schema_generality.py` runs the foreign vocabulary described above.
 
-`tests/test_schema_equivalence.py` is scaffolding. It pins
-`conftee/schemas/cisco-campus.yaml` against the hardcoded constants it was
-transcribed from, so a transcription mistake fails with the name of the
-offending variable rather than surfacing later as a changed report. Once the
-retired constants are deleted, this file goes with them. See
-[docs/repurposing-plan.md](./docs/repurposing-plan.md).
-
 Useful variations:
 
 ```

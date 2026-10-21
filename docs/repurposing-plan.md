@@ -645,9 +645,33 @@ retired together because the commits are independent and small: scaffolding
 this migration put up and is now done with, and features that were already
 dead when the repository was published.
 
-- [ ] Retire `tests/test_schema_equivalence.py` together with the vocabulary
+- [x] Retire `tests/test_schema_equivalence.py` together with the vocabulary
       half of `conftee/utils/constants.py` (`WORD_TYPE_REGEXES`,
       `IPV4_VARIABLES*`, `INT_VARIABLES`, `SUBNET_CLUSTERS`), as one commit.
+      Done. `constants.py` went from 140 lines to 14, the three surviving
+      definitions byte-identical. 194 tests pass, down from 254 by the 61
+      retired and up by the one carried over; `tests/fixtures/baseline.json`
+      is untouched, so all 63 report SHAs are unchanged.
+
+      One test was kept rather than retired. `test_syntax_regexes_match_hardcoded`
+      was the only member of that file reading no vocabulary constant: it pins
+      the bundled schema's eight `syntax:` regexes against the module-level
+      patterns in `extract.py`, `section.py`, `line_analyzer.py` and
+      `section_comparer.py`. It now lives at the bottom of
+      `tests/test_schema_generality.py` as `test_bundled_syntax_matches_hardcoded`,
+      which is the file whose docstring cited it by name. Keeping it matters
+      because `syntax:` is validated and then unread, so drift between the two
+      representations is otherwise silent.
+
+      Six live files cited the retired test and were repointed, not left
+      dangling: `cisco-campus.yaml` and `utils/schema.py` (now naming the
+      regression corpus and the past tense respectively), `utils/diff_helpers.py`
+      (the pool-range claim restated as a fact checkable in the schema, and
+      re-verified: both `ipv4` pools are declared `10.45.0.0` `/16`),
+      `tests/test_schema_validation.py` in two places, and
+      `tests/test_schema_generality.py`. The `README.md` paragraph describing
+      the file as scaffolding was removed, since its stated removal trigger
+      just fired.
       They retire together or not at all: the constants have no engine reader
       left, and the test exists to pin the schema against them, so removing
       either alone leaves the other pointless. The syntax half of

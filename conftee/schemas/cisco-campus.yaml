@@ -1,8 +1,9 @@
 # Conformance schema for the Cisco campus configs this tool was built against.
 #
-# Transcribed from the engine's former hardcoded constants, and pinned by
-# tests/test_schema_equivalence.py. It doubles as the worked example of the
-# format, so it is commented more heavily than a schema needs to be.
+# Transcribed from the engine's former hardcoded constants, and pinned by the
+# regression corpus in tests/test_regression.py. It doubles as the worked
+# example of the format, so it is commented more heavily than a schema needs
+# to be.
 
 # How the template dialect is written: variable delimiters, and the markers
 # that open a device or section block.

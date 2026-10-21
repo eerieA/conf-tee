@@ -18,7 +18,7 @@ The *syntax* section is still Cisco-shaped here, deliberately, because the
 engine does not read `schema.syntax` yet: `extract.py`, `section.py`,
 `line_analyzer.py` and `section_comparer.py` each match against their own
 module-level regexes, and the schema's syntax block is currently validated and
-then ignored. `tests/test_schema_equivalence.py::test_syntax_regexes_match_hardcoded`
+then ignored. `test_bundled_syntax_matches_hardcoded` at the bottom of this file
 is what pins the two representations together. Until those modules take their
 patterns from the schema, a genuinely different block syntax cannot be tested,
 and claiming otherwise here would be the kind of green test that hides work.
@@ -335,3 +335,41 @@ def test_netmask_role_is_declared_not_inferred(variable, expected):
     """`role: netmask` identifies the mask, since no name contains "netmask"."""
     schema = schema_module.loads(WEB_SCHEMA)
     assert schema.is_netmask(variable) is expected
+
+
+BUNDLED_SCHEMA_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "conftee",
+    "schemas",
+    "cisco-campus.yaml",
+)
+
+
+def test_bundled_syntax_matches_hardcoded():
+    """The bundled schema's syntax section reproduces the hardcoded regexes.
+
+    This is the half the module docstring above says does not work yet: the
+    four modules below own the patterns, and `syntax:` is validated and then
+    unread. Nothing would fail if the two drifted apart, which is exactly why
+    the check is worth keeping. It is the one test carried over from the
+    retired `test_schema_equivalence.py`, because it reads no vocabulary
+    constant.
+    """
+    from conftee.models.extract import DEVICE_TITLE_LINE_REGEX, DEVICE_TITLE_REGEX
+    from conftee.models.line_analyzer import EXPRESSION_REGEX, VARIABLE_REGEX
+    from conftee.models.section import (
+        SECTION_TITLE_LINE_REGEX,
+        SECTION_TITLE_REGEX,
+        SECTION_TITLE_SUFFIX,
+    )
+    from conftee.models.section_comparer import OPERATION_REGEX
+
+    syntax = schema_module.load(BUNDLED_SCHEMA_PATH).syntax
+    assert syntax.variable_regex.pattern == VARIABLE_REGEX
+    assert syntax.expression_regex.pattern == EXPRESSION_REGEX
+    assert syntax.operation_regex.pattern == OPERATION_REGEX
+    assert syntax.device_title_line_regex.pattern == DEVICE_TITLE_LINE_REGEX
+    assert syntax.device_title_regex.pattern == DEVICE_TITLE_REGEX
+    assert syntax.section_title_line_regex.pattern == SECTION_TITLE_LINE_REGEX
+    assert syntax.section_title_regex.pattern == SECTION_TITLE_REGEX
+    assert syntax.section_title_suffix == SECTION_TITLE_SUFFIX

@@ -9,8 +9,8 @@ names the offending entry".
 That second half is what nothing else checks. A refactor that let any of these
 surface as a bare KeyError, TypeError or AttributeError would still leave the
 engine working on the bundled schema, and every other test in this suite would
-pass. `tests/test_schema_equivalence.py` loads only `cisco-campus.yaml`, which
-is valid by construction, so no malformed input reaches the parser there.
+pass. Every other file in the suite loads only valid schemas, `cisco-campus.yaml`
+or a hand-written one, so no malformed input reaches the parser there.
 
 Each case mutates `BASE`, a minimal valid schema, so that exactly one thing is
 wrong and the assertion attributes the failure to that one thing. The regexes
@@ -370,9 +370,9 @@ def test_variable_in_two_groups():
 def test_accessors_reflect_declarations():
     """The accessors the engine calls return what the file declared.
 
-    Spot-checked on a schema small enough to read, which the equivalence test
-    cannot do: it compares the bundled schema against the constants it was
-    transcribed from, so it would pass even if both were wrong together.
+    Spot-checked on a schema small enough to read, which the regression corpus
+    cannot do: it exercises the bundled schema end to end, so a wrong
+    declaration shows up as a shifted report rather than as a named accessor.
     """
     schema = schema_module.loads(
         mutate(

@@ -6,9 +6,10 @@ variables must agree with each other, and what ranges their values must fall in.
 The engine previously recovered all of this by matching on variable *names*, so
 a user had to adopt one organization's naming convention to get correct results.
 
-This module was built and validated against `utils/constants.py` before being
-wired into anything, so that a transcription error in the schema file surfaced as
-a failed equivalence test rather than as a shifted report much later. The engine
+This module was built and validated against the engine's former hardcoded
+constants before being wired into anything, so that a transcription error in the
+schema file surfaced as a failed equivalence test rather than as a shifted report
+much later. That test has since retired, its job done. The engine
 now reads its vocabulary from here, and a caller must supply a schema explicitly:
 there is no default, so no code path can silently run against the wrong one. See
 docs/repurposing-plan.md section 2.

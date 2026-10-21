@@ -129,10 +129,10 @@ name variables in a magic convention to get correct behavior.
 | IP pool membership | membership in `IPV4_VARIABLES_USER` / `_INFRA` | `pool:` on the variable |
 | value binding by type | membership in `IPV4_VARIABLES` | `types:` carrying regex and arithmetic together |
 
-`models/constants_singleton.py`, which held the first row, is gone.
-`utils/constants.py` still exists but the engine no longer reads the vocabulary
-half of it; that half and the equivalence test pinning it retire together. See
-[repurposing-plan.md](./repurposing-plan.md), Phase 3a.
+`models/constants_singleton.py`, which held the first row, is gone, and so is
+the vocabulary half of `utils/constants.py` together with the equivalence test
+that pinned it. What remains in that file is syntax: how a value or a block is
+written, which is the same for every user.
 
 ### What the schema does not yet control
 
@@ -141,7 +141,8 @@ recognition is still matched against module-level patterns: two in
 `extract.py`, three in `section.py`, two in `line_analyzer.py`, one in
 `section_comparer.py`. So a foreign *vocabulary* works today and a foreign
 *block syntax* does not. `tests/test_schema_generality.py` is scoped to the
-half that works and says so.
+half that works and says so; its `test_bundled_syntax_matches_hardcoded` keeps
+the bundled schema's unread `syntax:` block from drifting from those patterns.
 
 ## Notes
 

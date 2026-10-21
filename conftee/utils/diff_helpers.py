@@ -369,8 +369,8 @@ def _value_is_in_pool(var: str, val: str, section_name: str, schema):
     both pools held the identical range, so the branch could not change a verdict.
     Expressing it in the schema would have meant a per-section pool construct built
     for a distinction nothing currently makes; a schema that needs one can declare
-    a separate variable. See tests/test_schema_equivalence.py, which pins the two
-    ranges as equal and fails if they ever diverge.
+    a separate variable. In cisco-campus.yaml the two pools are declared with the
+    identical range, which is what makes the dropped branch unobservable.
     """
     wrong_pool_type = None
     correct_pool = []
