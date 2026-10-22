@@ -11,8 +11,7 @@ constants before being wired into anything, so that a transcription error in the
 schema file surfaced as a failed equivalence test rather than as a shifted report
 much later. That test has since retired, its job done. The engine
 now reads its vocabulary from here, and a caller must supply a schema explicitly:
-there is no default, so no code path can silently run against the wrong one. See
-docs/repurposing-plan.md section 2.
+there is no default, so no code path can silently run against the wrong one.
 """
 import re
 

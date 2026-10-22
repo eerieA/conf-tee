@@ -66,7 +66,7 @@ trailing semicolon makes the token `{Listen_port};`. Written as
 `listen {Listen_port}`, it does.
 
 If you need either of those, the work is scoped in
-[docs/repurposing-plan.md](./docs/repurposing-plan.md).
+[docs/roadmap.md](./docs/roadmap.md).
 
 ## Install
 
@@ -291,7 +291,7 @@ published here in a generalized, sanitized form.
 | Aug 2023 - Dec 2023 | **v1** by a previous student developer. Not in this repository; see [docs/v1-retrospective.md](./docs/v1-retrospective.md) for its architecture and the lessons taken from it. |
 | Apr 2024 - Jul 2024 | **v2**, the code here: a full rewrite into the layered design in [docs/architecture.md](./docs/architecture.md). |
 | (undated) | Retired from production use; no longer deployed anywhere. |
-| Sep 2026 | Repurposing for public release: predecessor code removed, identifying sample data replaced, regression tests added, vocabulary moved from hardcoded constants into a schema. See [docs/repurposing-plan.md](./docs/repurposing-plan.md). |
+| Sep 2026 | Repurposing for public release: predecessor code removed, identifying sample data replaced, regression tests added, vocabulary moved from hardcoded constants into a schema. Open work and the decisions behind it are in [docs/roadmap.md](./docs/roadmap.md). |
 
 The version number (0.1.5) dates from the original development. The initial
 commit is when this repository was created for publication; it says nothing
