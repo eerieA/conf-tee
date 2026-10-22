@@ -15,7 +15,8 @@ dist/
 build/
 *.egg-info/
 
-# Output files
+# Output files and personal notes
+priv-notes/
 *.csv
 
 # Test caches
