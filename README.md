@@ -354,7 +354,7 @@ behavior has not *changed*, not that it is correct. A failure means something
 shifted; investigate the change rather than regenerating the baseline.
 
 The same file holds `test_no_identifying_strings`, which walks the sample
-configs, `resources/` and `docs/` for identifiers removed when this repository
+configs and `docs/` for identifiers removed when this repository
 was published. It stores them as salted hashes rather than plaintext, so the
 check runs without the names being present, and `test_guard_itself_works`
 brute-forces a sample to prove the check actually fires.

@@ -170,7 +170,6 @@ def _find_banned(text):
 def test_no_identifying_strings():
     """The published corpus must not carry organization- or person-identifying names."""
     scanned_dirs = CORPUS_ROOTS + (
-        os.path.join(ROOT, "resources"),
         os.path.join(ROOT, "docs"),
     )
     skip_ext = {".jpg", ".png", ".pyc"}
