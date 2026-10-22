@@ -78,7 +78,7 @@ Or from a local build, which is how it is tested today:
 
 ```
 poetry build
-python -m pip install dist/conftee-0.1.5-py3-none-any.whl
+python -m pip install dist/conftee-0.2.0-py3-none-any.whl
 ```
 
 Python 3.9 or newer. The dependencies (`colored`, `PyYAML`, `pandas`) install
@@ -293,9 +293,11 @@ published here in a generalized, sanitized form.
 | (undated) | Retired from production use; no longer deployed anywhere. |
 | Sep 2026 | Repurposing for public release: predecessor code removed, identifying sample data replaced, regression tests added, vocabulary moved from hardcoded constants into a schema. Open work and the decisions behind it are in [docs/roadmap.md](./docs/roadmap.md). |
 
-The version number (0.1.5) dates from the original development. The initial
-commit is when this repository was created for publication; it says nothing
-about how long the tool took to write.
+Versions up to 0.1.5 date from the original development. 0.2.0 is the first
+release of the repurposed tool, whose API differs: `ConfigCompare` and
+`GenSummary` now require a schema. The initial commit is when this repository
+was created for publication; it says nothing about how long the tool took to
+write.
 
 ***
 

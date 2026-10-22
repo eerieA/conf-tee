@@ -25,7 +25,7 @@ pytest = "^8.0"
 
 [project]
 name = "conftee"
-version = "0.1.5"
+version = "0.2.0"
 description = "Check that a config file conforms to a template with typed, named holes."
 requires-python = ">=3.9"
 readme = "README.md"
