@@ -369,14 +369,3 @@ python -m pytest -k schema                  # tests matching a name
 python -m pytest -x                         # stop at the first failure
 python -m pytest -q                         # one line per file instead of per test
 ```
-
-#### Addendum C: Dev tools notes
-
-`./dev_tools` holds standalone scripts kept from one past developer's own use.
-Delete them as needed.
-
-1. `print_regexes_from_client.py`: reads a txt file of regexes and prints them as
-   a prettified Python dict, to save manual formatting when pasting into
-   `conftee/utils/constants.py`.
-2. `simple_difflib_run.py`: runs the built-in `difflib` alongside this project's
-   slightly overridden Differ O class, to show the difference between them.
