@@ -25,17 +25,28 @@ pytest = "^8.0"
 
 [project]
 name = "conftee"
-version = "0.2.0"
+version = "0.2.1"
 description = "Check that a config file conforms to a template with typed, named holes."
 requires-python = ">=3.9"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
-  {name = "eerieA", email = "ninja.duan@gmail.com"},
+  {name = "eerieA", email = "3959788+eerieA@users.noreply.github.com"},
 ]
 maintainers = [
-  {name = "eerieA", email = "ninja.duan@gmail.com"}
+  {name = "eerieA", email = "3959788+eerieA@users.noreply.github.com"}
+]
+keywords = ["config", "configuration", "template", "compliance", "validation", "schema", "diff", "network"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Telecommunications Industry",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: System :: Networking",
+    "Topic :: System :: Systems Administration",
 ]
 dependencies = [
     "colored >= 1.4.4",
@@ -47,4 +58,8 @@ dependencies = [
     # replaceable in principle.
     "pandas >= 2.2",
 ]
+
+[project.urls]
+Repository = "https://github.com/eerieA/conf-tee"
+Issues = "https://github.com/eerieA/conf-tee/issues"
 

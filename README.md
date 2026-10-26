@@ -66,7 +66,7 @@ trailing semicolon makes the token `{Listen_port};`. Written as
 `listen {Listen_port}`, it does.
 
 If you need either of those, the work is scoped in
-[docs/roadmap.md](./docs/roadmap.md).
+[docs/roadmap.md](https://github.com/eerieA/conf-tee/blob/main/docs/roadmap.md).
 
 ## Install
 
@@ -156,7 +156,7 @@ impose on your names:
 - `scope: none` exempts a variable from the "one value throughout" rule, for
   things like paths that legitimately differ line to line.
 
-[`conftee/schemas/cisco-campus.yaml`](./conftee/schemas/cisco-campus.yaml) is the
+[`conftee/schemas/cisco-campus.yaml`](https://github.com/eerieA/conf-tee/blob/main/conftee/schemas/cisco-campus.yaml) is the
 bundled schema, commented as the worked reference.
 
 ### A non-Cisco example
@@ -201,7 +201,7 @@ hostname; it is wrong only against *this* schema's `hostname` type. Equally,
 which no amount of regex checking would catch.
 
 The full schema and both configs live in
-[`tests/test_schema_generality.py`](./tests/test_schema_generality.py), where
+[`tests/test_schema_generality.py`](https://github.com/eerieA/conf-tee/blob/main/tests/test_schema_generality.py), where
 they run on every test invocation, so this example cannot quietly stop working.
 
 ## Running it standalone
@@ -216,7 +216,7 @@ cannot find, it falls back to a built-in pair rather than failing.
 
 The four bundled pairs run from a 3-line minimal case to a 73-line
 production-shaped config, and are described in
-[`examples/README.md`](./examples/README.md). To use your own, drop matching
+[`examples/README.md`](https://github.com/eerieA/conf-tee/blob/main/examples/README.md). To use your own, drop matching
 filenames into `examples/golden/` and `examples/user/`.
 
 Results: a JSON report printed to the terminal, and a table written to `out.csv`
@@ -288,10 +288,10 @@ published here in a generalized, sanitized form.
 
 | Period | What happened |
 |---|---|
-| Aug 2023 - Dec 2023 | **v1** by a previous student developer. Not in this repository; see [docs/v1-retrospective.md](./docs/v1-retrospective.md) for its architecture and the lessons taken from it. |
-| Apr 2024 - Jul 2024 | **v2**, the code here: a full rewrite into the layered design in [docs/architecture.md](./docs/architecture.md). |
+| Aug 2023 - Dec 2023 | **v1** by a previous student developer. Not in this repository; see [docs/v1-retrospective.md](https://github.com/eerieA/conf-tee/blob/main/docs/v1-retrospective.md) for its architecture and the lessons taken from it. |
+| Apr 2024 - Jul 2024 | **v2**, the code here: a full rewrite into the layered design in [docs/architecture.md](https://github.com/eerieA/conf-tee/blob/main/docs/architecture.md). |
 | (undated) | Retired from production use; no longer deployed anywhere. |
-| Sep 2026 | Repurposing for public release: predecessor code removed, identifying sample data replaced, regression tests added, vocabulary moved from hardcoded constants into a schema. Open work and the decisions behind it are in [docs/roadmap.md](./docs/roadmap.md). |
+| Sep 2026 | Repurposing for public release: predecessor code removed, identifying sample data replaced, regression tests added, vocabulary moved from hardcoded constants into a schema. Open work and the decisions behind it are in [docs/roadmap.md](https://github.com/eerieA/conf-tee/blob/main/docs/roadmap.md). |
 
 Versions up to 0.1.5 date from the original development. 0.2.0 is the first
 release of the repurposed tool, whose API differs: `ConfigCompare` and
