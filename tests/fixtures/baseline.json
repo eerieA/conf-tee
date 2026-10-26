@@ -50,7 +50,7 @@
   ]
  },
  "add a VRF connected to a FW context on HSRP router pair without multicast.txt": {
-  "report_sha": "e2dde5cc70c3675d",
+  "report_sha": "1e07d67888365154",
   "summary": [
    [
     1,
@@ -100,7 +100,7 @@
   ]
  },
  "add a user prefix in blg rt-hsrp network type 5 incl ip helper and multicast.txt": {
-  "report_sha": "ae907ecbcb8ce329",
+  "report_sha": "206ab56dcf439fff",
   "summary": [
    [
     6,
@@ -125,7 +125,7 @@
   ]
  },
  "add a user prefix in blg rt-hsrp network type 5 no ip helper and multicast.txt": {
-  "report_sha": "4d7d5c8539310010",
+  "report_sha": "d54528a4361f736f",
   "summary": [
    [
     6,
@@ -150,7 +150,7 @@
   ]
  },
  "add a user prefix in blg rt-vss network type 5 incl ip helper and multicast.txt": {
-  "report_sha": "ea70d8fd0f5305f8",
+  "report_sha": "2e9d6be9ecf357ab",
   "summary": [
    [
     0,
@@ -175,7 +175,7 @@
   ]
  },
  "add a user prefix in blg rt-vss network type 5 no ip helper and multicast.txt": {
-  "report_sha": "ac31fa87275c4ecf",
+  "report_sha": "a75ffc02c3a1f7f1",
   "summary": [
    [
     0,
@@ -225,7 +225,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-hsrp different cxt rt-hsrp blg rt has no vrf incl ip helper and new MC on SVI and vrf in both blg and cxt rts.txt": {
-  "report_sha": "be17fdf99453da26",
+  "report_sha": "54916e5d890ba1e9",
   "summary": [
    [
     0,
@@ -300,7 +300,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-hsrp different cxt rt-hsrp blg rt has vrf incl ip helper and new MC on SVI and vrf in both blg and cxt rts.txt": {
-  "report_sha": "64a4cdd4a11e4fdc",
+  "report_sha": "da9f1325861084f2",
   "summary": [
    [
     0,
@@ -550,7 +550,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-hsrp network type 4 incl ip helper.txt": {
-  "report_sha": "fc827faba548a1d2",
+  "report_sha": "5e0ba195b48711f2",
   "summary": [
    [
     3,
@@ -575,7 +575,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-hsrp network type 4 no ip helper.txt": {
-  "report_sha": "b3f4e84bf62f2ba3",
+  "report_sha": "9a32e863fa410a95",
   "summary": [
    [
     3,
@@ -600,7 +600,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-hsrp same cxt rt-hsrp incl ip helper and new MC on SVI only vrf has MC already.txt": {
-  "report_sha": "52bb946bce0724f3",
+  "report_sha": "a12f7fda5dbf3935",
   "summary": [
    [
     3,
@@ -625,7 +625,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-hsrp same cxt rt-hsrp incl ip helper and new MC on both SVI and vrf.txt": {
-  "report_sha": "d7ad126e1fe0c7da",
+  "report_sha": "6acb690228e5a0af",
   "summary": [
    [
     3,
@@ -700,7 +700,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-vss different cxt rt-hsrp blg rt has no vrf incl ip helper and new MC on SVI and vrf in both blg and cxt rts.txt": {
-  "report_sha": "96abebf85d0041ad",
+  "report_sha": "de0ac79b88f849fe",
   "summary": [
    [
     0,
@@ -775,7 +775,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-vss different cxt rt-hsrp blg rt has vrf incl ip helper and new MC on SVI and vrf in both blg and cxt rts.txt": {
-  "report_sha": "bf8167dbe2906149",
+  "report_sha": "6550e8b47eee1c56",
   "summary": [
    [
     0,
@@ -1025,7 +1025,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-vss network type 4 incl ip helper.txt": {
-  "report_sha": "726a7521bc69ebfd",
+  "report_sha": "f3793d299b0f4a5b",
   "summary": [
    [
     0,
@@ -1050,7 +1050,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-vss network type 4 no ip helper.txt": {
-  "report_sha": "6c6a0c134ee4e5bb",
+  "report_sha": "6c4500ebb33f8c41",
   "summary": [
    [
     0,
@@ -1075,7 +1075,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-vss same cxt rt-vss incl ip helper and new MC on SVI only vrf has MC already.txt": {
-  "report_sha": "fa48eb09a6853941",
+  "report_sha": "4770ee20d5d2a60f",
   "summary": [
    [
     0,
@@ -1100,7 +1100,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-vss same cxt rt-vss incl ip helper and new MC on both vrf and SVI.txt": {
-  "report_sha": "4fb113cf00e4a9c9",
+  "report_sha": "a48d01f324156e2a",
   "summary": [
    [
     0,
@@ -1125,7 +1125,7 @@
   ]
  },
  "add a user prefix on a VRF in blg rt-vss same cxt rt-vss no ip helper and multicast.txt": {
-  "report_sha": "17407555f916ef3a",
+  "report_sha": "ba7a15af01731647",
   "summary": [
    [
     0,
@@ -1375,7 +1375,7 @@
   ]
  },
  "test_Building router is HSRP router pair, FW context router is VSS router pair.txt": {
-  "report_sha": "fb1edf9a606d1777",
+  "report_sha": "7725da287922ef8d",
   "summary": [
    [
     3,
@@ -1400,7 +1400,7 @@
   ]
  },
  "test_file_one_line_bad.txt": {
-  "report_sha": "62be2af2e83c9d1f",
+  "report_sha": "8230c30e0744bd2a",
   "summary": [
    [
     1,
@@ -1425,7 +1425,7 @@
   ]
  },
  "test_file_one_section_bad.txt": {
-  "report_sha": "1ceab111e44e34d5",
+  "report_sha": "cd92319e08493afd",
   "summary": [
    [
     2,
@@ -1450,7 +1450,7 @@
   ]
  },
  "test_file_structure_bad.txt": {
-  "report_sha": "0ee57506f1e339c0",
+  "report_sha": "c321a8f24a0e40ad",
   "summary": [
    [
     2,
@@ -1500,7 +1500,7 @@
   ]
  },
  "test_file_two_devices.txt": {
-  "report_sha": "879bf7285debb95f",
+  "report_sha": "2467a4fa2c741722",
   "summary": [
    [
     0,
@@ -1525,7 +1525,7 @@
   ]
  },
  "test_type_3_hsrp_context_add_vrf.txt": {
-  "report_sha": "e293104fec8a0f6b",
+  "report_sha": "899ff1c92cc49139",
   "summary": [
    [
     10,
@@ -1550,7 +1550,7 @@
   ]
  },
  "test_update_type_3_hsrp_enable_multicast.txt": {
-  "report_sha": "905d22cb4ae34418",
+  "report_sha": "b754b0d45c560cd7",
   "summary": [
    [
     2,

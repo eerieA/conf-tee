@@ -27,17 +27,17 @@ from ..utils.diff_helpers import (
 COL_LABEL_LINE_CNTT_1, COL_LABEL_LINE_CNTT_2, COL_LABEL_VAL_MISMATCH, COL_LABEL_DIFF_RESULT = (
     "Line in 1",
     "Line in 2",
-    "Value mistaches",
+    "Value mismatches",
     "diff_result",
 )
 COL_LABEL_VARS, COL_LABEL_EXPRS, COL_LABEL_VALS = "variables", "is expression", "values"
 ERR_TYPE_VAL_MISMATCH, ERR_TYPE_VAL_INCONS_SCT, ERR_TYPE_VAL_INCONS_FILE, ERR_TYPE_VAL_WRONG_SRC, ERR_TYPE_VAL_WRONG_LNK, ERR_TYPE_CMD_MISMATCH = (
-    "value-mistach",
+    "value-mismatch",
     "value-incons-section",
     "value-incons",
     "value-wrong-src",
     "value-wrong-link",
-    "command-mistach",
+    "command-mismatch",
 )
 
 def _line_is_empty(line:str):

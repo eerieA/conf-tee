@@ -78,7 +78,7 @@ Or from a local build, which is how it is tested today:
 
 ```
 poetry build
-python -m pip install dist/conftee-0.2.0-py3-none-any.whl
+python -m pip install dist/conftee-0.2.2-py3-none-any.whl
 ```
 
 Python 3.9 or newer. The dependencies (`colored`, `PyYAML`, `pandas`) install
@@ -182,7 +182,7 @@ A file carrying `server_name app.internal.local` produces:
 {
   "web01": {
     "UPSTREAM": [
-      ["value-mistach", {
+      ["value-mismatch", {
         "expected": "server_name {Server_name}",
         "actual": "server_name app.internal.local",
         "explanations": [
@@ -225,17 +225,40 @@ in the repository root.
 ## Using it as a library
 
 ```python
+from importlib.resources import files
+
 from conftee.models.config_compare import ConfigCompare
 from conftee.models.extract import Extract
 from conftee.models.outline import Outline
 from conftee.models.gen_summary import GenSummary
-from conftee.utils.read_config import ReadConfig
 from conftee.utils import schema as schema_module
 
-schema = schema_module.load("./conftee/schemas/cisco-campus.yaml")
+# The bundled schema ships inside the package.
+schema = schema_module.loads(
+    files("conftee").joinpath("schemas/cisco-campus.yaml").read_text()
+)
 
-golden = ReadConfig.read_config_from_txt("./examples/golden/test_file_one_section_bad.txt")
-user = ReadConfig.read_config_from_txt("./examples/user/test_file_one_section_bad.txt")
+golden = """\
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctx FW Context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### VRF START ###########
+ip vrf {VRF_name}
+  rd 64000:{RD_ID}
+  route-target export 64000:{RD_ID}
+!
+vlan {Vlan_ID_user}
+  name {FW_context_name}-VRFGLUE={VRF_name}
+""".splitlines(keepends=True)
+
+user = """\
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fw25-ctx FW Context ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! ########### VRF START ###########
+ip vrf ABCD-RED
+  rd 64000:34435
+  route-target export 64000:3435
+!
+vlan 645
+  name abcd12-VRFGLUE=ABCD-RED
+""".splitlines(keepends=True)
 
 extract_golden, extract_user = Extract._extract_structs(golden, user)
 outline_golden = Outline(golden, extract_golden, True)
@@ -258,15 +281,18 @@ for count, label in summary:
     print(f"{count} {label}")
 ```
 
-That pair is deliberately non-conforming, so it reports `2 value mismatches`. In
-a gate, assert on the counts you care about:
+That pair is deliberately non-conforming: `34435` is too long for `{RD_ID}`, and
+`abcd12` does not match the `{FW_context_name}` format, so it reports
+`2 value mismatches`. In a gate, assert on the counts you care about:
 
 ```python
 assert summary[0][0] == 0, f"Expected 0 {summary[0][1]}, but got {summary[0][0]}"
 ```
 
-Both `ConfigCompare` and `GenSummary` take the schema. `schema_module.loads()`
-accepts the YAML as a string instead of a path.
+Both `ConfigCompare` and `GenSummary` take the schema. `schema_module.load()`
+takes a path instead of the YAML string, and
+`ReadConfig.read_config_from_txt()` (in `conftee.utils.read_config`) reads a
+config from a file.
 
 `calculate_diff()` also accepts `infra_prefixes`, a list of address prefixes to
 treat as infrastructure rather than user space when checking pool membership.
